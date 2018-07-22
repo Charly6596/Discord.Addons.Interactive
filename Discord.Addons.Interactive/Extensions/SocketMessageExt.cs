@@ -21,7 +21,7 @@ namespace Discord.Addons.Interactive.Extensions
                 ? message.MentionedUsers.Contains(user)
                 : (numberOfUsers > 0 ? message.MentionedUsers.Count == numberOfUsers : message.MentionedUsers.Count >= 1);
 
-        public static bool ContainsWords(this SocketMessage message, List<string> words, int numberOfCoincidences = 0)
+        public static bool ContainsWords(this SocketMessage message,  int numberOfCoincidences = 0, params string[] words)
         {
             var coincidences = words.Where(word => message.Content.Contains(word));
             return numberOfCoincidences > 0 ? coincidences.Count() == numberOfCoincidences : coincidences.Any();
