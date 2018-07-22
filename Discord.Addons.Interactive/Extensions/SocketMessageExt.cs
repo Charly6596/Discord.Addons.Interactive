@@ -23,7 +23,7 @@ namespace Discord.Addons.Interactive.Extensions
 
         public static bool ContainsWords(this SocketMessage message, List<string> words, int numberOfCoincidences = 0)
         {
-            var coincidences = words.Select(word => message.Content.Contains(word));
+            var coincidences = words.Where(word => message.Content.Contains(word));
             return numberOfCoincidences > 0 ? coincidences.Count() == numberOfCoincidences : coincidences.Any();
         }
     }

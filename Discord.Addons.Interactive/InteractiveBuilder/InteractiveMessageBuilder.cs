@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Discord.WebSocket;
 
 // ReSharper disable CheckNamespace
@@ -19,11 +20,19 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
 
         private List<string> _options;
 
-        private IMessageChannel _channel;
+        private IMessageChannel _channel = null;
 
-        public InteractiveTextResponseType ResponseType { get => _responseType; internal set => _responseType = value; }
+        private IUser _user = null;
 
-        
+        public InteractiveTextResponseType ResponseType
+        {
+            get => _responseType;
+            internal set
+            {
+                if(_responseType != InteractiveTextResponseType.Any) throw new InvalidOperationException("Cannot set the response type because has been already setted.");
+                _responseType = value;
+            }
+        }
 
         public string Message
         {
@@ -32,12 +41,19 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
             internal set
             {
                 if (String.IsNullOrEmpty(value) || String.IsNullOrWhiteSpace(value))
-                    throw new ArgumentException("Cannot set an interactive message builder's field to null or empty",nameof(value));
+                    throw new ArgumentException("Cannot set an interactive message builder's field to null or empty",nameof(Message));
                 _message = value;
             }
         }
 
-        public TimeSpan Timeout { get => _timeout; internal set => _timeout = value; }
+        public TimeSpan Timeout
+        {
+            get => _timeout;
+            internal set
+            {
+                _timeout = value;
+            }
+        }
 
         public bool Repeat { get => _repeat; internal set => _repeat = value; }
 
@@ -46,17 +62,34 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
             get => _channel;
             internal set
             {
-                _channel = value ?? throw new ArgumentNullException("Cannot set an interactive message builder's field to null", nameof(value));
+                _channel = value ?? throw new ArgumentNullException("Cannot set an interactive message builder's field to null", nameof(Channel));
+                if (MessageCriteria.ContainsCriteriaType(typeof(EnsureSourceChannelCriterion))) throw new InvalidOperationException($"Cannot add a {nameof(EnsureFromChannelCriterion)} because {nameof(EnsureSourceChannelCriterion)} has been already selected");
+                MessageCriteria.AddCriterion(new EnsureFromChannelCriterion(_channel));
             }
         }
 
         public Criteria<SocketMessage> MessageCriteria { get => _messageCriteria; internal set => _messageCriteria = value; }
 
-        public List<string> Options { get => _options; internal set
+        public List<string> Options
         {
-            _responseType = InteractiveTextResponseType.Options;
-            _options = value;
-        }  }
+            get => _options;
+            internal set
+            {
+                _options = value ?? throw new ArgumentNullException("Cannot set an interactive message builder's field to null", nameof(value));
+                ResponseType = InteractiveTextResponseType.Options;
+            }
+        }
+
+        public IUser User
+        {
+            get => _user;
+            internal set
+            {
+                _user = value ?? throw new ArgumentNullException("Cannot set an interactive message builder's field to null", nameof(value));
+                if(_messageCriteria.ContainsCriteriaType(typeof(EnsureSourceUserCriterion))) throw new InvalidOperationException($"Cannot add a {nameof(EnsureFromUserCriterion)} because {nameof(EnsureSourceUserCriterion)} has been already selected");
+                _messageCriteria.AddCriterion(new EnsureFromUserCriterion(_user.Id));
+            } 
+        }
 
         public InteractiveMessageBuilder(string message)
         {
@@ -66,7 +99,6 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
         public InteractiveMessageBuilder SetChannel(IMessageChannel channel)
         {
             Channel = channel;
-            _messageCriteria.AddCriterion(new EnsureFromChannelCriterion(Channel));
             return this;
         }
         public InteractiveMessageBuilder AddCriteria(CriteriaType criteriaType)
@@ -74,13 +106,15 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
             switch (criteriaType)
             {
                 case CriteriaType.SourceUser:
-                    _messageCriteria.AddCriterion(new EnsureSourceUserCriterion());
+                    if (_user != null || _messageCriteria.ContainsCriteriaType(typeof(EnsureFromUserCriterion))) throw new InvalidOperationException("Cannot add an SourceUser criteria because an user has been already selected");
+                    MessageCriteria.AddCriterion(new EnsureSourceUserCriterion());
                     break;
                 case CriteriaType.SourceChannel:
-                    _messageCriteria.AddCriterion(new EnsureSourceChannelCriterion());
+                    if(_channel != null || _messageCriteria.ContainsCriteriaType(typeof(EnsureFromChannelCriterion))) throw new InvalidOperationException("Cannot add an SourceChannel criteria because a channel has been already selected");
+                    MessageCriteria.AddCriterion(new EnsureSourceChannelCriterion());
                     break;
                 case CriteriaType.Empty:
-                    _messageCriteria.AddCriterion(new EmptyCriterion<SocketMessage>());
+                    MessageCriteria.AddCriterion(new EmptyCriterion<SocketMessage>());
                     break;
                 default:
                     break;
@@ -105,6 +139,18 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
             return this;
         }
 
+        public InteractiveMessageBuilder SetOptions(params String[] options)
+        {
+            Options = options.ToList();
+            return this;
+        }
+
+        public InteractiveMessageBuilder SetUser(IUser user)
+        {
+            User = user;
+
+            return this;
+        }
         /// <summary>
         /// Time the bot will wait for a reply.
         /// </summary>

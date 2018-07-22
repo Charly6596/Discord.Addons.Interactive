@@ -4,6 +4,6 @@
     {
         SourceUser,
         SourceChannel,
-        Empty,
+        Empty
     }
 }

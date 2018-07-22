@@ -1,5 +1,6 @@
 ﻿// ReSharper disable All
 
+using System.Text;
 using Discord.Addons.Interactive.InteractiveBuilder;
 
 namespace SampleBot
@@ -203,6 +204,24 @@ namespace SampleBot
                         .WithTimeSpan(TimeSpan.FromSeconds(115))
                         .SetChannel(await Context.User.GetOrCreateDMChannelAsync())
                         .AddCriteria(CriteriaType.SourceUser);
+
+            var interactiveMessage = interactiveMessageBuilder.Build();
+
+            var response = await StartInteractiveMessage(interactiveMessage);
+
+            if (response != null)
+            {
+                await Context.Channel.SendMessageAsync(response.Content);
+            }
+        }
+
+        [Command("Options", RunMode = RunMode.Async)]
+        public async Task YesOrNo(string option1, string option2)
+        {
+            var interactiveMessageBuilder =
+                new InteractiveMessageBuilder(String.Format("Pick one: `{0}` or `{1}`", option1, option2))
+                    .WithLoop();
+            interactiveMessageBuilder.SetOptions(option1, option2);
 
             var interactiveMessage = interactiveMessageBuilder.Build();
 

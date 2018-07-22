@@ -1,4 +1,8 @@
 ﻿// ReSharper disable StyleCop.SA1600
+
+using System;
+using System.Linq;
+
 namespace Discord.Addons.Interactive
 {
     using System.Collections.Generic;
@@ -28,6 +32,10 @@ namespace Discord.Addons.Interactive
             return this;
         }
 
+        public bool ContainsCriteriaType(Type criteriaType)
+        {
+            return criteria.Any(c => c.GetType() == criteriaType);
+        }
         /// <summary>
         /// The judge async.
         /// </summary>
