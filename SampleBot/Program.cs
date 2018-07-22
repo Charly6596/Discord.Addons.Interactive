@@ -36,7 +36,7 @@
         {
             new Program().StartAsync().GetAwaiter().GetResult();
         }
-
+        
         /// <summary>
         /// Initializes the bot
         /// </summary>

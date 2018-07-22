@@ -1,5 +1,7 @@
 ﻿// ReSharper disable All
 
+using Discord.Addons.Interactive.InteractiveBuilder;
+
 namespace SampleBot
 {
     using System;
@@ -169,6 +171,47 @@ namespace SampleBot
                 .WithCallback(one, (c, r) => c.Channel.SendMessageAsync($"{r.User.Value.Mention} Here you go :beer:") )
                 .WithCallback(two, (c, r) => c.Channel.SendMessageAsync($"{r.User.Value.Mention} Here you go :tropical_drink:")), sourceuser
             );
+        }
+
+        [Command("channel", RunMode = RunMode.Async)]
+        public async Task Channel()
+        {
+            var interactiveMessageBuilder =
+                new InteractiveMessageBuilder("Yo, write a channel, I'll check if it's trully a channel")
+                    .WithResponseType(InteractiveTextResponseType.Channel)
+                    .WithTimeSpan(TimeSpan.FromSeconds(115))
+                    .AddCriteria(CriteriaType.SourceChannel)
+                    .AddCriteria(CriteriaType.SourceUser)
+                    .WithLoop()
+                ;
+           var interactiveMessage = interactiveMessageBuilder.Build();
+
+           var response = await StartInteractiveMessage(interactiveMessage);
+
+            if (response != null)
+            {
+                await Context.Channel.SendMessageAsync(response.Content);
+            }
+        }
+
+        [Command("DmMe", RunMode = RunMode.Async)]
+        public async Task DmMe()
+        {
+            var interactiveMessageBuilder =
+                    new InteractiveMessageBuilder("Psssh, tell me a secret, i promese i won't tell anyone")
+                        .WithResponseType(InteractiveTextResponseType.Any)
+                        .WithTimeSpan(TimeSpan.FromSeconds(115))
+                        .SetChannel(await Context.User.GetOrCreateDMChannelAsync())
+                        .AddCriteria(CriteriaType.SourceUser);
+
+            var interactiveMessage = interactiveMessageBuilder.Build();
+
+            var response = await StartInteractiveMessage(interactiveMessage);
+
+            if (response != null)
+            {
+                await Context.Channel.SendMessageAsync(response.Content);
+            }
         }
     }
 }

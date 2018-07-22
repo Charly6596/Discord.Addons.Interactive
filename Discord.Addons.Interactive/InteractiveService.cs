@@ -1,4 +1,8 @@
-﻿namespace Discord.Addons.Interactive
+﻿using System.Linq;
+using Discord.Addons.Interactive.Extensions;
+using Discord.Addons.Interactive.InteractiveBuilder;
+
+namespace Discord.Addons.Interactive
 {
     using System;
     using System.Collections.Generic;
@@ -78,7 +82,7 @@
 
             return NextMessageAsync(context, criterion, timeout);
         }
-        
+
         /// <summary>
         /// waits for the next message in the channel
         /// </summary>
@@ -90,6 +94,9 @@
         /// </param>
         /// <param name="timeout">
         /// The timeout.
+        /// </param>
+        /// <param name="targetChannel">
+        /// Target channel.
         /// </param>
         /// <returns>
         /// The <see cref="Task"/>.
@@ -118,6 +125,29 @@
             return null;
         }
 
+
+        public async Task<InteractiveResponse> NextMessageAsync(SocketCommandContext context, InteractiveMessage interactiveMessage)
+        {
+
+            var eventTrigger = new TaskCompletionSource<InteractiveResponse>();
+
+            Task Func(SocketMessage m) => HandlerAsync(m, context, eventTrigger, interactiveMessage);
+
+            context.Client.MessageReceived += Func;
+
+            var trigger = eventTrigger.Task;
+            var delay = Task.Delay(interactiveMessage.TimeSpan);
+            var task = await Task.WhenAny(trigger, delay).ConfigureAwait(false);
+
+            context.Client.MessageReceived -= Func;
+
+            if (task == trigger)
+            {
+                return await trigger.ConfigureAwait(false);
+            }
+
+            return new InteractiveResponse(CriteriaResult.Timeout, null);
+        }
         /// <summary>
         /// Sends a message with reaction callbacks
         /// </summary>
@@ -273,6 +303,45 @@
             }
         }
 
+
+        private static async Task HandlerAsync(SocketMessage message, SocketCommandContext context, TaskCompletionSource<InteractiveResponse> eventTrigger, InteractiveMessage interactiveMessage)
+        {
+            var result = await interactiveMessage.MessageCriteria.JudgeAsync(context, message).ConfigureAwait(false);
+            if (result)
+            {
+                eventTrigger.SetResult(evaluateResponse(message, interactiveMessage));
+            }
+        }
+
+        private static InteractiveResponse evaluateResponse(SocketMessage message, InteractiveMessage interactiveMessage)
+        {
+            var response = new InteractiveResponse(CriteriaResult.WrongResponse, message);
+            switch (interactiveMessage.ResponseType)
+            {
+                case InteractiveTextResponseType.Channel:
+                   if(message.ContainsChannel())
+                        response.CriteriaResult = CriteriaResult.Success;
+                    break;
+                case InteractiveTextResponseType.User:
+                    if (message.ContainsUser())
+                        response.CriteriaResult = CriteriaResult.Success;
+                    break;
+                case InteractiveTextResponseType.Role:
+                    if (message.ContainsRole())
+                        response.CriteriaResult = CriteriaResult.Success;
+                    break;
+                case InteractiveTextResponseType.Options:
+                    if (message.ContainsWords(interactiveMessage.Options))
+                        response.CriteriaResult = CriteriaResult.Success;
+                    break;
+                case InteractiveTextResponseType.Any:
+                    response.CriteriaResult = CriteriaResult.Success;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+            return response;
+        }
         /// <summary>
         /// Handles a message reaction
         /// </summary>

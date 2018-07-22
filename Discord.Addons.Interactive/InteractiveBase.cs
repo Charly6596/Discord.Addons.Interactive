@@ -1,4 +1,6 @@
-﻿namespace Discord.Addons.Interactive
+﻿using Discord.Addons.Interactive.InteractiveBuilder;
+
+namespace Discord.Addons.Interactive
 {
     using System;
     using System.Threading.Tasks;
@@ -48,5 +50,49 @@
             => Interactive.SendPaginatedMessageAsync(Context, pager, Reactions, criterion);
 
         public RuntimeResult Ok(string reason = null) => new OkResult(reason);
+
+        public async Task<SocketMessage> StartInteractiveMessage(InteractiveMessage interactiveMessage)
+        {
+
+            CriteriaResult result;
+            InteractiveResponse response;
+            interactiveMessage.Channel = interactiveMessage.Channel ?? Context.Channel;
+            if (interactiveMessage.Repeat)
+            {
+                do
+                {
+                    if (!String.IsNullOrEmpty(interactiveMessage.Message))
+                        await interactiveMessage.Channel.SendMessageAsync(interactiveMessage.Message);
+
+                    response = await Interactive.NextMessageAsync(Context, interactiveMessage);
+                    result = response.CriteriaResult;
+                } while (result == CriteriaResult.WrongResponse);
+            }
+            else
+            {
+                if (!String.IsNullOrEmpty(interactiveMessage.Message))
+                    await interactiveMessage.Channel.SendMessageAsync(interactiveMessage.Message);
+
+                response = await Interactive.NextMessageAsync(Context, interactiveMessage);
+            }
+
+            string message;
+            if(response.CriteriaResult != CriteriaResult.Success)
+            {
+                switch (response.CriteriaResult)
+                {
+                    case CriteriaResult.Timeout:
+                        message = "Timeout.";
+                        break;
+                    case CriteriaResult.Canceled:
+                        message = "Ok, nvm";
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+                await Context.Channel.SendMessageAsync(message);
+            }
+            return response.Message;
+        }
     }
 }
