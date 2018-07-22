@@ -183,7 +183,7 @@ namespace SampleBot
                     .WithTimeSpan(TimeSpan.FromSeconds(115))
                     .AddCriteria(CriteriaType.SourceChannel)
                     .AddCriteria(CriteriaType.SourceUser)
-                    .WithLoop()
+                    .EnableLoop()
                 ;
            var interactiveMessage = interactiveMessageBuilder.Build();
 
@@ -220,7 +220,8 @@ namespace SampleBot
         {
             var interactiveMessageBuilder =
                 new InteractiveMessageBuilder(String.Format("Pick one: `{0}` or `{1}`", option1, option2))
-                    .WithLoop();
+                    .EnableLoop()
+                    .WithCancellationWord("Stop");
             interactiveMessageBuilder.SetOptions(option1, option2);
 
             var interactiveMessage = interactiveMessageBuilder.Build();

@@ -3,7 +3,7 @@ namespace Discord.Addons.Interactive
 {
     using System.Threading.Tasks;
 
-    using Discord.Commands;
+    using Commands;
 
     public class EmptyCriterion<T> : ICriterion<T>
     {

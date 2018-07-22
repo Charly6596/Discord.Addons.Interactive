@@ -1,12 +1,10 @@
-﻿using Discord.Addons.Interactive.InteractiveBuilder;
-
-namespace Discord.Addons.Interactive
+﻿namespace Discord.Addons.Interactive
 {
     using System;
     using System.Threading.Tasks;
-
-    using Discord.Commands;
-    using Discord.WebSocket;
+    using InteractiveBuilder;
+    using Commands;
+    using WebSocket;
 
     /// <summary>
     /// The interactive base.
@@ -82,10 +80,10 @@ namespace Discord.Addons.Interactive
                 switch (response.CriteriaResult)
                 {
                     case CriteriaResult.Timeout:
-                        message = "Timeout.";
+                        message = String.IsNullOrEmpty(interactiveMessage.TimeoutMessage) ? "Timeout." : interactiveMessage.TimeoutMessage;
                         break;
                     case CriteriaResult.Canceled:
-                        message = "Ok, nvm";
+                        message = String.IsNullOrEmpty(interactiveMessage.CancelationMessage) ? "Alright then, nevermind." : interactiveMessage.CancelationMessage;
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();

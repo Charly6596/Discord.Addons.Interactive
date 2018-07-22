@@ -1,6 +1,6 @@
 ﻿namespace Discord.Addons.Interactive
 {
-    using Discord.Commands;
+    using Commands;
 
     /// <summary>
     /// The ok result.

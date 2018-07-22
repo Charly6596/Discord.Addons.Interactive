@@ -1,15 +1,14 @@
-﻿using System.Linq;
-using Discord.Addons.Interactive.Extensions;
-using Discord.Addons.Interactive.InteractiveBuilder;
+﻿
 
 namespace Discord.Addons.Interactive
 {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-
-    using Discord.Commands;
-    using Discord.WebSocket;
+    using Extensions;
+    using InteractiveBuilder;
+    using Commands;
+    using WebSocket;
 
     /// <summary>
     /// The interactive service.
@@ -309,13 +308,23 @@ namespace Discord.Addons.Interactive
             var result = await interactiveMessage.MessageCriteria.JudgeAsync(context, message).ConfigureAwait(false);
             if (result)
             {
-                eventTrigger.SetResult(evaluateResponse(message, interactiveMessage));
+                eventTrigger.SetResult(EvaluateResponse(message, interactiveMessage));
             }
         }
 
-        private static InteractiveResponse evaluateResponse(SocketMessage message, InteractiveMessage interactiveMessage)
+        private static InteractiveResponse EvaluateResponse(SocketMessage message, InteractiveMessage interactiveMessage)
         {
             var response = new InteractiveResponse(CriteriaResult.WrongResponse, message);
+
+            if (!String.IsNullOrEmpty(interactiveMessage.CancelationWord))
+            {
+                if (message.ContainsWords(1, interactiveMessage.CancelationWord))
+                {
+                    response.CriteriaResult = CriteriaResult.Canceled;
+                    response.Message = null;
+                    return response;
+                }
+            }
             switch (interactiveMessage.ResponseType)
             {
                 case InteractiveTextResponseType.Channel:
@@ -331,7 +340,7 @@ namespace Discord.Addons.Interactive
                         response.CriteriaResult = CriteriaResult.Success;
                     break;
                 case InteractiveTextResponseType.Options:
-                    if (message.ContainsWords(interactiveMessage.Options))
+                    if (message.ContainsWords(0, interactiveMessage.Options))
                         response.CriteriaResult = CriteriaResult.Success;
                     break;
                 case InteractiveTextResponseType.Any:

@@ -7,21 +7,27 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
 {
     public class InteractiveMessage
     {
-        public string Message { get; internal set; }
-        public TimeSpan TimeSpan { get; internal set; }
-        public InteractiveTextResponseType ResponseType { get; internal set; }
-        public bool Repeat { get; internal set; }
-        public Criteria<SocketMessage> MessageCriteria { get; internal set; }
+        public string Message { get; private set; }
+        public TimeSpan TimeSpan { get; private set; }
+        public InteractiveTextResponseType ResponseType { get; private set; }
+        public bool Repeat { get; private set; }
+        public Criteria<SocketMessage> MessageCriteria { get; private set; }
         public IMessageChannel Channel { get; set; }
-        public List<string> Options { get; set; }
+        public String[] Options { get; private set; }
+        public string CancelationMessage { get; private set; }
+        public string TimeoutMessage { get; private set; }
+        public string CancelationWord { get; private set; }
 
-        public InteractiveMessage(string message, TimeSpan timeSpan, InteractiveTextResponseType responseType, bool repeat, Criteria<SocketMessage> messageCriteria, IMessageChannel channel = null, List<string> options = null)
+        public InteractiveMessage(string message, TimeSpan timeSpan, InteractiveTextResponseType responseType, bool repeat, Criteria<SocketMessage> messageCriteria, string cancelationMessage, string timeoutMessage, string cancelationWord, IMessageChannel channel = null, String[] options = null)
         {
             Message = message;
             TimeSpan = timeSpan;
             ResponseType = responseType;
             Repeat = repeat;
             MessageCriteria = messageCriteria;
+            CancelationMessage = cancelationMessage;
+            TimeoutMessage = timeoutMessage;
+            CancelationWord = cancelationWord;
             Channel = channel;
             Options = options;
         }

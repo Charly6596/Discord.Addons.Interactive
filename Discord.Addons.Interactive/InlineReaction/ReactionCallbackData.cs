@@ -6,8 +6,8 @@ namespace Discord.Addons.Interactive
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
-    using Discord.Commands;
-    using Discord.WebSocket;
+    using Commands;
+    using WebSocket;
 
     public class ReactionCallbackData
     {

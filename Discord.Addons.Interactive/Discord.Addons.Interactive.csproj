@@ -27,6 +27,7 @@ https://github.com/foxbot/Discord.Addons.Interactive</PackageReleaseNotes>
   <ItemGroup>
     <PackageReference Include="Discord.Net.Commands" Version="1.0.1" />
     <PackageReference Include="Discord.Net.WebSocket" Version="1.0.1" />
+    <PackageReference Include="JetBrains.Annotations" Version="10.2.1" />
   </ItemGroup>
 
 </Project>

@@ -5,9 +5,9 @@ namespace Discord.Addons.Interactive
     using System.Linq;
     using System.Threading.Tasks;
 
-    using Discord.Commands;
-    using Discord.Rest;
-    using Discord.WebSocket;
+    using Commands;
+    using Rest;
+    using WebSocket;
 
     /// <summary>
     /// The paginated message callback.

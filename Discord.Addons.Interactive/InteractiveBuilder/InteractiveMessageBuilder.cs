@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Discord.WebSocket;
+using JetBrains.Annotations;
 
 // ReSharper disable CheckNamespace
 namespace Discord.Addons.Interactive.InteractiveBuilder
@@ -9,6 +10,12 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
     public class InteractiveMessageBuilder
     {
         private string _message = String.Empty;
+
+        private string _cancelationMessage = String.Empty;
+
+        private string _timeoutMessage = String.Empty;
+
+        private string _cancelationWord = String.Empty;
 
         private TimeSpan _timeout = System.TimeSpan.FromSeconds(15);
 
@@ -18,7 +25,7 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
 
         private Criteria<SocketMessage> _messageCriteria = new Criteria<SocketMessage>();
 
-        private List<string> _options;
+        private String[] _options;
 
         private IMessageChannel _channel = null;
 
@@ -70,7 +77,7 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
 
         public Criteria<SocketMessage> MessageCriteria { get => _messageCriteria; internal set => _messageCriteria = value; }
 
-        public List<string> Options
+        public String[] Options
         {
             get => _options;
             internal set
@@ -91,16 +98,76 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
             } 
         }
 
-        public InteractiveMessageBuilder(string message)
+        public string CancelationWord
+        {
+            get => _cancelationWord;
+            internal set => _cancelationWord = value;
+        }
+
+        public string CancelationMessage
+        {
+            get => _cancelationMessage;
+            internal set => _cancelationMessage = value;
+        }
+
+        public string TimeoutMessage
+        {
+            get => _timeoutMessage;
+            internal set => _timeoutMessage = value;
+        }
+
+        public InteractiveMessageBuilder SetCancelationMessage(string cancelationMessage)
+        {
+            CancelationMessage = cancelationMessage;
+            return this;
+        }
+
+        public InteractiveMessageBuilder SetTimeoutMessage(string timeoutMessage)
+        {
+            TimeoutMessage = timeoutMessage;
+            return this;
+        }
+
+        /// <summary>
+        /// Let the user stop the <see cref="InteractiveMessage"/> with a certain word
+        /// </summary>
+        /// <param name="word">
+        /// The word to stop the Interactive Message.
+        /// </param>
+        /// <returns>InteractiveMessageBuilder</returns>
+        public InteractiveMessageBuilder WithCancellationWord([NotNull]string word)
+        {
+            CancelationWord = word;
+            return this;
+        }
+
+        /// <summary>
+        /// Interactive message Builder
+        /// </summary>
+        /// <param name="message">The message to send.</param>
+        public InteractiveMessageBuilder([NotNull]string message)
         {
             Message = message;
         }
 
-        public InteractiveMessageBuilder SetChannel(IMessageChannel channel)
+
+        /// <summary>
+        /// Specify the channel to read messages.
+        /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <returns>InteractiveMessageBuilder</returns>
+        public InteractiveMessageBuilder SetChannel([NotNull]IMessageChannel channel)
         {
             Channel = channel;
             return this;
         }
+
+        /// <summary>
+        /// Adds a <see cref="Criteria{T}"/>
+        /// </summary>
+        /// <param name="criteriaType">The <see cref="Criteria{T}"/> to add</param>
+        /// <exception cref="InvalidOperationException"> </exception>
+        /// <returns>InteractiveMessageBuilder</returns>
         public InteractiveMessageBuilder AddCriteria(CriteriaType criteriaType)
         {
             switch (criteriaType)
@@ -122,6 +189,11 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
             return this;
         }
 
+        /// <summary>
+        /// Set a filter to the response.
+        /// </summary>
+        /// <param name="responseType">The response Type.</param>
+        /// <returns>InteractiveMessageBuilder</returns>
         public InteractiveMessageBuilder WithResponseType(InteractiveTextResponseType responseType)
         {
             ResponseType = responseType;
@@ -133,29 +205,40 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
         /// </summary>
         /// <param name="withLoop"></param>
         /// <returns></returns>
-        public InteractiveMessageBuilder WithLoop(bool withLoop = true)
+        public InteractiveMessageBuilder EnableLoop([NotNull]bool withLoop = true)
         {
             Repeat = withLoop;
             return this;
         }
 
-        public InteractiveMessageBuilder SetOptions(params String[] options)
+        /// <summary>
+        /// Specify a few options to be valid as response.
+        /// </summary>
+        /// <param name="options">The options</param>
+        /// <returns>InteractiveMessageBuilder</returns>
+        public InteractiveMessageBuilder SetOptions([ItemNotNull] params String[] options)
         {
-            Options = options.ToList();
+            Options = options;
             return this;
         }
 
-        public InteractiveMessageBuilder SetUser(IUser user)
+        /// <summary>
+        /// Set the user who can trigger the <see cref="InteractiveMessage"/>.
+        /// </summary>
+        /// <param name="user">The user to listen.</param>
+        /// <returns>InteractiveMessageBuilder</returns>
+        public InteractiveMessageBuilder SetUser([NotNull] IUser user)
         {
             User = user;
 
             return this;
         }
+
         /// <summary>
         /// Time the bot will wait for a reply.
         /// </summary>
         /// <param name="timeSpan"></param>
-        /// <returns></returns>
+        /// <returns>InteractiveMessageBuilder</returns>
         public InteractiveMessageBuilder WithTimeSpan(TimeSpan timeSpan)
         {
             Timeout = timeSpan;
@@ -163,18 +246,21 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
         }
 
         /// <summary>
-        /// Message to send.
+        /// Message to send when the Interactive Message starts.
         /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public InteractiveMessageBuilder SetMessage(string message)
+        /// <param name="message">The message.</param>
+        /// <returns>InteractiveMessageBuilder</returns>
+        public InteractiveMessageBuilder SetMessage([NotNull]string message)
         {
             Message = message;
             return this;
         }
-        public InteractiveMessage Build()
-        {
-            return new InteractiveMessage(_message, _timeout, _responseType, _repeat, _messageCriteria, _channel, _options);
-        }
+
+        /// <summary>
+        /// Build an <see cref="InteractiveMessage"/>
+        /// </summary>
+        /// <returns><see cref="InteractiveMessage"/></returns>
+        public InteractiveMessage Build() => new InteractiveMessage(Message, Timeout, ResponseType, Repeat,
+            MessageCriteria, CancelationMessage, TimeoutMessage, CancelationWord, Channel, Options);
     }
 }
