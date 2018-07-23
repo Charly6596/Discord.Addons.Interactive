@@ -9,27 +9,27 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
 {
     public class InteractiveMessageBuilder
     {
-        private string _message = String.Empty;
+        private string _message = InteractiveMessageDefaultOptions.Message;
 
-        private string _cancelationMessage = String.Empty;
+        private string _cancelationMessage = InteractiveMessageDefaultOptions.CancelationMessage;
 
-        private string _timeoutMessage = String.Empty;
+        private string _timeoutMessage = InteractiveMessageDefaultOptions.TimeoutMessage;
 
-        private string _cancelationWord = String.Empty;
+        private string _cancelationWord = InteractiveMessageDefaultOptions.CancelationWord;
 
-        private TimeSpan _timeout = System.TimeSpan.FromSeconds(15);
+        private TimeSpan _timeout = InteractiveMessageDefaultOptions.TimeSpan;
 
-        private bool _repeat = false;
+        private LoopEnabled _repeat = InteractiveMessageDefaultOptions.Repeat;
 
-        private InteractiveTextResponseType _responseType = InteractiveTextResponseType.Any;
+        private InteractiveTextResponseType _responseType = InteractiveMessageDefaultOptions.ResponseType;
 
-        private Criteria<SocketMessage> _messageCriteria = new Criteria<SocketMessage>();
+        private Criteria<SocketMessage> _messageCriteria = InteractiveMessageDefaultOptions.MessageCriteria;
 
-        private String[] _options;
+        private String[] _options = InteractiveMessageDefaultOptions.Options;
 
-        private IMessageChannel _channel = null;
+        private List<IMessageChannel> _channels = null;
 
-        private IUser _user = null;
+        private List<IUser> _users = null;
 
         public InteractiveTextResponseType ResponseType
         {
@@ -45,12 +45,7 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
         {
             get => _message;
 
-            internal set
-            {
-                if (String.IsNullOrEmpty(value) || String.IsNullOrWhiteSpace(value))
-                    throw new ArgumentException("Cannot set an interactive message builder's field to null or empty",nameof(Message));
-                _message = value;
-            }
+            internal set => _message = value;
         }
 
         public TimeSpan Timeout
@@ -62,17 +57,12 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
             }
         }
 
-        public bool Repeat { get => _repeat; internal set => _repeat = value; }
+        public LoopEnabled Repeat { get => _repeat; internal set => _repeat = value; }
 
-        public IMessageChannel Channel
+        public List<IMessageChannel> Channels
         {
-            get => _channel;
-            internal set
-            {
-                _channel = value ?? throw new ArgumentNullException("Cannot set an interactive message builder's field to null", nameof(Channel));
-                if (MessageCriteria.ContainsCriteriaType(typeof(EnsureSourceChannelCriterion))) throw new InvalidOperationException($"Cannot add a {nameof(EnsureFromChannelCriterion)} because {nameof(EnsureSourceChannelCriterion)} has been already selected");
-                MessageCriteria.AddCriterion(new EnsureFromChannelCriterion(_channel));
-            }
+            get => _channels;
+            internal set => _channels = value ?? throw new ArgumentNullException("Cannot set an interactive message builder's field to null", nameof(Channels));
         }
 
         public Criteria<SocketMessage> MessageCriteria { get => _messageCriteria; internal set => _messageCriteria = value; }
@@ -87,15 +77,10 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
             }
         }
 
-        public IUser User
+        public List<IUser> Users
         {
-            get => _user;
-            internal set
-            {
-                _user = value ?? throw new ArgumentNullException("Cannot set an interactive message builder's field to null", nameof(value));
-                if(_messageCriteria.ContainsCriteriaType(typeof(EnsureSourceUserCriterion))) throw new InvalidOperationException($"Cannot add a {nameof(EnsureFromUserCriterion)} because {nameof(EnsureSourceUserCriterion)} has been already selected");
-                _messageCriteria.AddCriterion(new EnsureFromUserCriterion(_user.Id));
-            } 
+            get => _users;
+            internal set => _users = value ?? throw new ArgumentNullException("Cannot set an interactive message builder's field to null", nameof(value));
         }
 
         public string CancelationWord
@@ -119,6 +104,7 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
         public InteractiveMessageBuilder SetCancelationMessage(string cancelationMessage)
         {
             CancelationMessage = cancelationMessage;
+
             return this;
         }
 
@@ -150,16 +136,9 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
             Message = message;
         }
 
-
-        /// <summary>
-        /// Specify the channel to read messages.
-        /// </summary>
-        /// <param name="channel">The channel.</param>
-        /// <returns>InteractiveMessageBuilder</returns>
-        public InteractiveMessageBuilder SetChannel([NotNull]IMessageChannel channel)
+        public InteractiveMessageBuilder()
         {
-            Channel = channel;
-            return this;
+
         }
 
         /// <summary>
@@ -173,11 +152,11 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
             switch (criteriaType)
             {
                 case CriteriaType.SourceUser:
-                    if (_user != null || _messageCriteria.ContainsCriteriaType(typeof(EnsureFromUserCriterion))) throw new InvalidOperationException("Cannot add an SourceUser criteria because an user has been already selected");
+                    if (Users != null || MessageCriteria.ContainsCriteriaType(typeof(EnsureFromUserCriterion))) throw new InvalidOperationException("Cannot add an SourceUser criteria because an user has been already selected");
                     MessageCriteria.AddCriterion(new EnsureSourceUserCriterion());
                     break;
                 case CriteriaType.SourceChannel:
-                    if(_channel != null || _messageCriteria.ContainsCriteriaType(typeof(EnsureFromChannelCriterion))) throw new InvalidOperationException("Cannot add an SourceChannel criteria because a channel has been already selected");
+                    if(Channels != null || MessageCriteria.ContainsCriteriaType(typeof(EnsureFromChannelCriterion))) throw new InvalidOperationException("Cannot add an SourceChannel criteria because a channel has been already selected");
                     MessageCriteria.AddCriterion(new EnsureSourceChannelCriterion());
                     break;
                 case CriteriaType.Empty:
@@ -205,7 +184,7 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
         /// </summary>
         /// <param name="withLoop"></param>
         /// <returns></returns>
-        public InteractiveMessageBuilder EnableLoop([NotNull]bool withLoop = true)
+        public InteractiveMessageBuilder EnableLoop([NotNull]LoopEnabled withLoop = LoopEnabled.True)
         {
             Repeat = withLoop;
             return this;
@@ -227,13 +206,38 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
         /// </summary>
         /// <param name="user">The user to listen.</param>
         /// <returns>InteractiveMessageBuilder</returns>
-        public InteractiveMessageBuilder SetUser([NotNull] IUser user)
+        public InteractiveMessageBuilder ListenUser([NotNull] IUser user)
         {
-            User = user;
-
+            if(Users == null)
+                Users = new List<IUser>();
+            Users.Add(user);
             return this;
         }
 
+        public InteractiveMessageBuilder ListenUsers([NotNull] List<IUser> users)
+        {
+            Users = Users == null ? new List<IUser>(users) : Users.Concat(users).ToList();
+            return this;
+        }
+
+        /// <summary>
+        /// Specify the channel to read messages.
+        /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <returns>InteractiveMessageBuilder</returns>
+        public InteractiveMessageBuilder ListenChannel([NotNull]IMessageChannel channel)
+        {
+            if (Channels == null)
+                Channels = new List<IMessageChannel>();
+            Channels.Add(channel);
+            return this;
+        }
+
+        public InteractiveMessageBuilder ListenChannel([NotNull]List<IMessageChannel> channels)
+        {
+            Channels = Channels == null ? new List<IMessageChannel>(channels) : Channels.Concat(channels).ToList();
+            return this;
+        }
         /// <summary>
         /// Time the bot will wait for a reply.
         /// </summary>
@@ -260,7 +264,23 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
         /// Build an <see cref="InteractiveMessage"/>
         /// </summary>
         /// <returns><see cref="InteractiveMessage"/></returns>
-        public InteractiveMessage Build() => new InteractiveMessage(Message, Timeout, ResponseType, Repeat,
-            MessageCriteria, CancelationMessage, TimeoutMessage, CancelationWord, Channel, Options);
+        public InteractiveMessage Build()
+        {
+            if (Users != null)
+            {
+                if (MessageCriteria.ContainsCriteriaType(typeof(EnsureSourceUserCriterion))) throw new InvalidOperationException($"Cannot add a {nameof(EnsureFromUsersCriterion)} because {nameof(EnsureSourceUserCriterion)} has been already selected");
+                MessageCriteria.AddCriterion(new EnsureFromUsersCriterion(Users));
+            }
+
+            if (Channels != null)
+            {
+                if (MessageCriteria.ContainsCriteriaType(typeof(EnsureSourceChannelCriterion))) throw new InvalidOperationException($"Cannot add a {nameof(EnsureFromChannelsCriterion)} because {nameof(EnsureSourceChannelCriterion)} has been already selected");
+                MessageCriteria.AddCriterion(new EnsureFromChannelsCriterion(Channels));
+            }
+            
+
+            return new InteractiveMessage(Message, Timeout, ResponseType, Repeat,
+                MessageCriteria, CancelationMessage, TimeoutMessage, CancelationWord, Channels.FirstOrDefault(), Options);
+        }
     }
 }

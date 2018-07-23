@@ -1,7 +1,9 @@
 ﻿// ReSharper disable All
 
+using System.Linq;
 using System.Text;
 using Discord.Addons.Interactive.InteractiveBuilder;
+using Discord.WebSocket;
 
 namespace SampleBot
 {
@@ -21,6 +23,9 @@ namespace SampleBot
         public async Task<RuntimeResult> Test_DeleteAfterAsync()
         {
             await ReplyAndDeleteAsync("this message will delete in 10 seconds", timeout: TimeSpan.FromSeconds(10));
+            var channel = await Context.Channel.GetMessagesAsync(6).FlattenAsync();
+            var message = channel.ToList().Where(msg => msg.Id == 1) as SocketUserMessage;
+            await message.AddReactionAsync(new Emoji("asd"));
             return Ok();
         }
 
@@ -180,7 +185,7 @@ namespace SampleBot
             var interactiveMessageBuilder =
                 new InteractiveMessageBuilder("Yo, write a channel, I'll check if it's trully a channel")
                     .WithResponseType(InteractiveTextResponseType.Channel)
-                    .WithTimeSpan(TimeSpan.FromSeconds(115))
+                    .WithTimeSpan(TimeSpan.FromSeconds(15))
                     .AddCriteria(CriteriaType.SourceChannel)
                     .AddCriteria(CriteriaType.SourceUser)
                     .EnableLoop()
@@ -215,6 +220,65 @@ namespace SampleBot
             }
         }
 
+        [Command("Dm2", RunMode = RunMode.Async)]
+        public async Task DmMe(string message, SocketGuildUser user)
+        {
+            var dmc1 = await Context.User.GetOrCreateDMChannelAsync();
+            var dmc2 = await user.GetOrCreateDMChannelAsync();
+
+            InteractiveQueue iq = new InteractiveQueue();
+            iq.defaultQueueOptions = new InteractiveMessageBuilder()
+                .WithCancellationWord("stop")
+                .SetCancelationMessage("ok men")
+                .WithTimeSpan(TimeSpan.FromMinutes(5))
+                .Build();
+
+             var interactiveMessageBuilder =
+                new InteractiveMessageBuilder(message)
+                    .SetChannel(dmc2);
+
+            var  interactiveMessage = interactiveMessageBuilder.Build();
+            iq.Add(interactiveMessage);
+           
+            while (true)
+            {
+                var reply = await iq.Next(this);
+                interactiveMessageBuilder =
+                    new InteractiveMessageBuilder(reply.Content)
+                        .SetChannel(dmc1);
+
+                interactiveMessage = interactiveMessageBuilder.Build();
+                iq.Add(interactiveMessage);
+
+                reply = await iq.Next(this);
+                interactiveMessageBuilder =
+                    new InteractiveMessageBuilder(reply.Content)
+                        .SetChannel(dmc2);
+
+                interactiveMessage = interactiveMessageBuilder.Build();
+                iq.Add(interactiveMessage);
+            }
+            
+
+            var response = await StartInteractiveMessage(interactiveMessage);
+                
+            if (response != null)
+            {
+                await Context.Channel.SendMessageAsync(response.Content);
+            }
+            else
+            {
+                await ReplyAsync("gg");
+            }
+
+
+            var optionYes = "Yes";
+            var optionNo = "No";
+            var imb = new InteractiveMessageBuilder(
+                    $"Hey, this is a message, just want to ask, are you ready? `{optionYes}` or `{optionNo}`?")
+                .SetOptions(optionYes, optionNo);
+
+        }
         [Command("Options", RunMode = RunMode.Async)]
         public async Task YesOrNo(string option1, string option2)
         {

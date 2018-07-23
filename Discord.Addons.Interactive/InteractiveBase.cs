@@ -49,13 +49,14 @@
 
         public RuntimeResult Ok(string reason = null) => new OkResult(reason);
 
+        
         public async Task<SocketMessage> StartInteractiveMessage(InteractiveMessage interactiveMessage)
         {
-
+            //TODO: refactor...
             CriteriaResult result;
             InteractiveResponse response;
             interactiveMessage.Channel = interactiveMessage.Channel ?? Context.Channel;
-            if (interactiveMessage.Repeat)
+            if (interactiveMessage.Repeat == LoopEnabled.True)
             {
                 do
                 {
@@ -80,15 +81,16 @@
                 switch (response.CriteriaResult)
                 {
                     case CriteriaResult.Timeout:
-                        message = String.IsNullOrEmpty(interactiveMessage.TimeoutMessage) ? "Timeout." : interactiveMessage.TimeoutMessage;
+                        message = String.IsNullOrEmpty(interactiveMessage.TimeoutMessage) ? null : interactiveMessage.TimeoutMessage;
                         break;
                     case CriteriaResult.Canceled:
-                        message = String.IsNullOrEmpty(interactiveMessage.CancelationMessage) ? "Alright then, nevermind." : interactiveMessage.CancelationMessage;
+                        message = String.IsNullOrEmpty(interactiveMessage.CancelationMessage) ? null : interactiveMessage.CancelationMessage;
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-                await Context.Channel.SendMessageAsync(message);
+                if(message != null)
+                    await Context.Channel.SendMessageAsync(message);
             }
             return response.Message;
         }
