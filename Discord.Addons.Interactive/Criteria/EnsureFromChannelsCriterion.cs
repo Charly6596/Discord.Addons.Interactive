@@ -4,23 +4,22 @@ using System.Linq;
 namespace Discord.Addons.Interactive
 {
     using System.Threading.Tasks;
-
     using Commands;
     using WebSocket;
 
     public class EnsureFromChannelsCriterion : ICriterion<SocketMessage>
     {
-        private readonly List<IMessageChannel> _channels;
+        private readonly IEnumerable<IMessageChannel> _channels;
 
-        public EnsureFromChannelsCriterion(List<IMessageChannel> channels) => _channels = channels;
+        public EnsureFromChannelsCriterion(IEnumerable<IMessageChannel> channels) => _channels = channels;
 
         /// <summary>
-        /// Ensures the user is the author
+        /// Ensures the channel is being listened
         /// </summary>
         /// <param name="sourceContext"></param>
         /// <param name="parameter"></param>
         /// <returns>
-        /// True if user is author
+        /// True if the channel is being listened
         /// </returns>
         public Task<bool> JudgeAsync(SocketCommandContext sourceContext, SocketMessage parameter)
         {

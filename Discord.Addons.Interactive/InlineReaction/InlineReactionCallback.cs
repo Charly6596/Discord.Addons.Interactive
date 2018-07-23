@@ -3,7 +3,6 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-
     using Commands;
     using WebSocket;
 
@@ -99,10 +98,10 @@
             {
                 _ = Task.Delay(Timeout.Value)
                     .ContinueWith(_ =>
-                        {
-                            interactive.RemoveReactionCallback(message);
-                            data.TimeoutCallback?.Invoke(Context);
-                        });
+                    {
+                        interactive.RemoveReactionCallback(message);
+                        data.TimeoutCallback?.Invoke(Context);
+                    });
             }
         }
 

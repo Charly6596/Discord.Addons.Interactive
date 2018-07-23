@@ -1,10 +1,10 @@
 ﻿// ReSharper disable StyleCop.SA1503
+
 namespace Discord.Addons.Interactive
 {
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-
     using Commands;
     using Rest;
     using WebSocket;
@@ -38,12 +38,12 @@ namespace Discord.Addons.Interactive
         /// The current page.
         /// </summary>
         private int page = 1;
-        
+
         /// <summary>
         /// The paginated message
         /// </summary>
         private readonly PaginatedMessage pager;
-        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PaginatedMessageCallback"/> class.
         /// </summary>
@@ -59,7 +59,7 @@ namespace Discord.Addons.Interactive
         /// <param name="criterion">
         /// The criterion.
         /// </param>
-        public PaginatedMessageCallback(InteractiveService interactive, 
+        public PaginatedMessageCallback(InteractiveService interactive,
             SocketCommandContext sourceContext,
             PaginatedMessage pager,
             ICriterion<SocketReaction> criterion = null)
@@ -80,12 +80,12 @@ namespace Discord.Addons.Interactive
         /// Gets the interactive service.
         /// </summary>
         public InteractiveService Interactive { get; }
-        
+
         /// <summary>
         /// Gets the criterion.
         /// </summary>
         public ICriterion<SocketReaction> Criterion { get; }
-        
+
         /// <summary>
         /// Gets the message.
         /// </summary>
@@ -121,7 +121,8 @@ namespace Discord.Addons.Interactive
 
                 if (reactionList.Jump)
                 {
-                    if (options.JumpDisplayOptions == JumpDisplayOptions.Always || (options.JumpDisplayOptions == JumpDisplayOptions.WithManageMessages && manageMessages))
+                    if (options.JumpDisplayOptions == JumpDisplayOptions.Always ||
+                        (options.JumpDisplayOptions == JumpDisplayOptions.WithManageMessages && manageMessages))
                     {
                         await message.AddReactionAsync(options.Jump);
                     }

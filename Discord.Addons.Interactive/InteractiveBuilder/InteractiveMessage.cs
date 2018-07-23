@@ -7,7 +7,9 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
 {
     public class InteractiveMessage : InteractiveMessageOptions
     {
-        public InteractiveMessage(string message, TimeSpan timeSpan, InteractiveTextResponseType responseType, LoopEnabled repeat, Criteria<SocketMessage> messageCriteria, string cancelationMessage, string timeoutMessage, string cancelationWord, IMessageChannel channel = null, String[] options = null)
+        public InteractiveMessage(string message, TimeSpan timeSpan, InteractiveTextResponseType responseType,
+            LoopEnabled repeat, Criteria<SocketMessage> messageCriteria, string cancelationMessage,
+            string timeoutMessage, string cancelationWord, IMessageChannel channel = null, String[] options = null)
         {
             Message = message;
             TimeSpan = timeSpan;

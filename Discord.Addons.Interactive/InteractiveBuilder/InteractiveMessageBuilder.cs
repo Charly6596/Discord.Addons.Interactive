@@ -9,70 +9,45 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
 {
     public class InteractiveMessageBuilder
     {
-        private string _message = InteractiveMessageDefaultOptions.Message;
-
-        private string _cancelationMessage = InteractiveMessageDefaultOptions.CancelationMessage;
-
-        private string _timeoutMessage = InteractiveMessageDefaultOptions.TimeoutMessage;
-
-        private string _cancelationWord = InteractiveMessageDefaultOptions.CancelationWord;
-
-        private TimeSpan _timeout = InteractiveMessageDefaultOptions.TimeSpan;
-
-        private LoopEnabled _repeat = InteractiveMessageDefaultOptions.Repeat;
-
         private InteractiveTextResponseType _responseType = InteractiveMessageDefaultOptions.ResponseType;
-
-        private Criteria<SocketMessage> _messageCriteria = InteractiveMessageDefaultOptions.MessageCriteria;
-
-        private String[] _options = InteractiveMessageDefaultOptions.Options;
-
-        private List<IMessageChannel> _channels = null;
-
-        private List<IUser> _users = null;
+        private string[] _options = InteractiveMessageDefaultOptions.Options;
+        private List<IMessageChannel> _channels;
+        private List<IUser> _users;
 
         public InteractiveTextResponseType ResponseType
         {
             get => _responseType;
             internal set
             {
-                if(_responseType != InteractiveTextResponseType.Any) throw new InvalidOperationException("Cannot set the response type because has been already setted.");
+                if (_responseType != InteractiveTextResponseType.Any)
+                    throw new InvalidOperationException(
+                        "Cannot set the response type because has been already setted.");
                 _responseType = value;
             }
         }
 
-        public string Message
-        {
-            get => _message;
-
-            internal set => _message = value;
-        }
-
-        public TimeSpan Timeout
-        {
-            get => _timeout;
-            internal set
-            {
-                _timeout = value;
-            }
-        }
-
-        public LoopEnabled Repeat { get => _repeat; internal set => _repeat = value; }
+        public string Message { get; internal set; } = InteractiveMessageDefaultOptions.Message;
+        public TimeSpan Timeout { get; internal set; } = InteractiveMessageDefaultOptions.TimeSpan;
+        public LoopEnabled Repeat { get; internal set; } = InteractiveMessageDefaultOptions.Repeat;
 
         public List<IMessageChannel> Channels
         {
             get => _channels;
-            internal set => _channels = value ?? throw new ArgumentNullException("Cannot set an interactive message builder's field to null", nameof(Channels));
+            internal set => _channels =
+                value ?? throw new ArgumentNullException("Cannot set an interactive message builder's field to null",
+                    nameof(Channels));
         }
 
-        public Criteria<SocketMessage> MessageCriteria { get => _messageCriteria; internal set => _messageCriteria = value; }
+        public Criteria<SocketMessage> MessageCriteria { get; internal set; } =
+            InteractiveMessageDefaultOptions.MessageCriteria;
 
-        public String[] Options
+        public string[] Options
         {
             get => _options;
             internal set
             {
-                _options = value ?? throw new ArgumentNullException("Cannot set an interactive message builder's field to null", nameof(value));
+                _options = value ?? throw new ArgumentNullException(
+                               "Cannot set an interactive message builder's field to null", nameof(value));
                 ResponseType = InteractiveTextResponseType.Options;
             }
         }
@@ -80,34 +55,34 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
         public List<IUser> Users
         {
             get => _users;
-            internal set => _users = value ?? throw new ArgumentNullException("Cannot set an interactive message builder's field to null", nameof(value));
+            internal set => _users =
+                value ?? throw new ArgumentNullException("Cannot set an interactive message builder's field to null",
+                    nameof(value));
         }
 
-        public string CancelationWord
-        {
-            get => _cancelationWord;
-            internal set => _cancelationWord = value;
-        }
+        public string CancelationWord { get; internal set; } = InteractiveMessageDefaultOptions.CancelationWord;
+        public string CancelationMessage { get; internal set; } = InteractiveMessageDefaultOptions.CancelationMessage;
+        public string TimeoutMessage { get; internal set; } = InteractiveMessageDefaultOptions.TimeoutMessage;
 
-        public string CancelationMessage
-        {
-            get => _cancelationMessage;
-            internal set => _cancelationMessage = value;
-        }
 
-        public string TimeoutMessage
-        {
-            get => _timeoutMessage;
-            internal set => _timeoutMessage = value;
-        }
-
+        /// <summary>
+        /// This message will be sent if the <see cref="CancelationWord"/> is sent by any listened source.
+        /// If it's not setted, won't be sent.
+        /// </summary>
+        /// <param name="cancelationMessage"></param>
+        /// <returns></returns>
         public InteractiveMessageBuilder SetCancelationMessage(string cancelationMessage)
         {
             CancelationMessage = cancelationMessage;
-
             return this;
         }
 
+        /// <summary>
+        /// This message will be sent if the <see cref="Timeout"/> is triggered.
+        /// If it's not setted, won't be sent.
+        /// </summary>
+        /// <param name="timeoutMessage"></param>
+        /// <returns></returns>
         public InteractiveMessageBuilder SetTimeoutMessage(string timeoutMessage)
         {
             TimeoutMessage = timeoutMessage;
@@ -115,23 +90,23 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
         }
 
         /// <summary>
-        /// Let the user stop the <see cref="InteractiveMessage"/> with a certain word
+        ///     Let the user stop the <see cref="InteractiveMessage" /> with a certain word
         /// </summary>
         /// <param name="word">
-        /// The word to stop the Interactive Message.
+        ///     The word to stop the Interactive Message.
         /// </param>
         /// <returns>InteractiveMessageBuilder</returns>
-        public InteractiveMessageBuilder WithCancellationWord([NotNull]string word)
+        public InteractiveMessageBuilder WithCancellationWord([NotNull] string word)
         {
             CancelationWord = word;
             return this;
         }
 
         /// <summary>
-        /// Interactive message Builder
+        ///     Interactive message Builder
         /// </summary>
         /// <param name="message">The message to send.</param>
-        public InteractiveMessageBuilder([NotNull]string message)
+        public InteractiveMessageBuilder([NotNull] string message)
         {
             Message = message;
         }
@@ -142,9 +117,9 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
         }
 
         /// <summary>
-        /// Adds a <see cref="Criteria{T}"/>
+        ///     Adds a <see cref="Criteria{T}" />
         /// </summary>
-        /// <param name="criteriaType">The <see cref="Criteria{T}"/> to add</param>
+        /// <param name="criteriaType">The <see cref="Criteria{T}" /> to add</param>
         /// <exception cref="InvalidOperationException"> </exception>
         /// <returns>InteractiveMessageBuilder</returns>
         public InteractiveMessageBuilder AddCriteria(CriteriaType criteriaType)
@@ -152,11 +127,15 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
             switch (criteriaType)
             {
                 case CriteriaType.SourceUser:
-                    if (Users != null || MessageCriteria.ContainsCriteriaType(typeof(EnsureFromUserCriterion))) throw new InvalidOperationException("Cannot add an SourceUser criteria because an user has been already selected");
+                    if (Users != null || MessageCriteria.ContainsCriteriaType(typeof(EnsureFromUserCriterion)))
+                        throw new InvalidOperationException(
+                            "Cannot add an SourceUser criteria because an user has been already selected");
                     MessageCriteria.AddCriterion(new EnsureSourceUserCriterion());
                     break;
                 case CriteriaType.SourceChannel:
-                    if(Channels != null || MessageCriteria.ContainsCriteriaType(typeof(EnsureFromChannelCriterion))) throw new InvalidOperationException("Cannot add an SourceChannel criteria because a channel has been already selected");
+                    if (Channels != null || MessageCriteria.ContainsCriteriaType(typeof(EnsureFromChannelCriterion)))
+                        throw new InvalidOperationException(
+                            "Cannot add an SourceChannel criteria because a channel has been already selected");
                     MessageCriteria.AddCriterion(new EnsureSourceChannelCriterion());
                     break;
                 case CriteriaType.Empty:
@@ -165,11 +144,18 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
                 default:
                     break;
             }
+
+            return this;
+        }
+
+        public InteractiveMessageBuilder AddCriteria(ICriterion<SocketMessage> criterion)
+        {
+            MessageCriteria.AddCriterion(criterion);
             return this;
         }
 
         /// <summary>
-        /// Set a filter to the response.
+        ///     Set a filter to the response.
         /// </summary>
         /// <param name="responseType">The response Type.</param>
         /// <returns>InteractiveMessageBuilder</returns>
@@ -180,66 +166,98 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
         }
 
         /// <summary>
-        /// If loop is activated, won't stop until a valid response is given.
+        ///     If loop is activated, won't stop until a valid response is given.
+        /// <seealso cref="WithResponseType"/>
         /// </summary>
         /// <param name="withLoop"></param>
         /// <returns></returns>
-        public InteractiveMessageBuilder EnableLoop([NotNull]LoopEnabled withLoop = LoopEnabled.True)
+        public InteractiveMessageBuilder EnableLoop([NotNull] LoopEnabled withLoop = LoopEnabled.True)
         {
             Repeat = withLoop;
             return this;
         }
 
         /// <summary>
-        /// Specify a few options to be valid as response.
+        ///     Specify a few options to be valid as response.
         /// </summary>
         /// <param name="options">The options</param>
         /// <returns>InteractiveMessageBuilder</returns>
-        public InteractiveMessageBuilder SetOptions([ItemNotNull] params String[] options)
+        public InteractiveMessageBuilder SetOptions([ItemNotNull] params string[] options)
         {
             Options = options;
             return this;
         }
 
         /// <summary>
-        /// Set the user who can trigger the <see cref="InteractiveMessage"/>.
+        /// The bot will listen the provided user. Multiple users can be listened.
         /// </summary>
-        /// <param name="user">The user to listen.</param>
-        /// <returns>InteractiveMessageBuilder</returns>
+        /// <param name="user">User to listen</param>
+        /// <returns></returns>
         public InteractiveMessageBuilder ListenUser([NotNull] IUser user)
         {
-            if(Users == null)
-                Users = new List<IUser>();
-            Users.Add(user);
+            if (Users == null) Users = new List<IUser>();
+            Users.Append(user);
             return this;
         }
 
-        public InteractiveMessageBuilder ListenUsers([NotNull] List<IUser> users)
+        /// <summary>
+        /// The bot will listen the provided users.
+        /// </summary>
+        /// <param name="users">Users to listen</param>
+        /// <returns></returns>
+        public InteractiveMessageBuilder ListenUsers([NotNull] IEnumerable<IUser> users)
         {
             Users = Users == null ? new List<IUser>(users) : Users.Concat(users).ToList();
             return this;
         }
 
         /// <summary>
-        /// Specify the channel to read messages.
+        /// The bot will listen the provided users.
         /// </summary>
-        /// <param name="channel">The channel.</param>
-        /// <returns>InteractiveMessageBuilder</returns>
-        public InteractiveMessageBuilder ListenChannel([NotNull]IMessageChannel channel)
+        /// <param name="users">Users to listen</param>
+        /// <returns></returns>
+        public InteractiveMessageBuilder ListenUsers([NotNull] IUser[] users)
         {
-            if (Channels == null)
-                Channels = new List<IMessageChannel>();
+            Users = Users == null ? new List<IUser>(users) : Users.Concat(users).ToList();
+            return this;
+        }
+
+        /// <summary>
+        /// The bot will listen the provided channel. Multiple channels can be added.
+        /// </summary>
+        /// <param name="channel">Channel to listen</param>
+        /// <returns></returns>
+        public InteractiveMessageBuilder ListenChannel([NotNull] IMessageChannel channel)
+        {
+            if (Channels == null) Channels = new List<IMessageChannel>();
             Channels.Add(channel);
             return this;
         }
 
-        public InteractiveMessageBuilder ListenChannel([NotNull]List<IMessageChannel> channels)
+        /// <summary>
+        /// The bot will listen the provided channels.
+        /// </summary>
+        /// <param name="channels">Channels to listen</param>
+        /// <returns></returns>
+        public InteractiveMessageBuilder ListenChannel([NotNull] IEnumerable<IMessageChannel> channels)
         {
             Channels = Channels == null ? new List<IMessageChannel>(channels) : Channels.Concat(channels).ToList();
             return this;
         }
+
         /// <summary>
-        /// Time the bot will wait for a reply.
+        /// The bot will listen the provided channels.
+        /// </summary>
+        /// <param name="channels">Channels to listen</param>
+        /// <returns></returns>
+        public InteractiveMessageBuilder ListenChannel([NotNull] params IMessageChannel[] channels)
+        {
+            Channels = Channels == null ? new List<IMessageChannel>(channels) : Channels.Concat(channels).ToList();
+            return this;
+        }
+
+        /// <summary>
+        ///     Time the bot will wait for a reply (timeout).
         /// </summary>
         /// <param name="timeSpan"></param>
         /// <returns>InteractiveMessageBuilder</returns>
@@ -250,37 +268,40 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
         }
 
         /// <summary>
-        /// Message to send when the Interactive Message starts.
+        ///     Message to send when the Interactive Message starts.
+        ///     Messages are sent to the first channel in the provided list (<see cref="Channels"/>,
+        /// or the source channel <seealso cref="ListenChannel(Discord.IMessageChannel)"/>
         /// </summary>
         /// <param name="message">The message.</param>
         /// <returns>InteractiveMessageBuilder</returns>
-        public InteractiveMessageBuilder SetMessage([NotNull]string message)
+        public InteractiveMessageBuilder SetMessage([NotNull] string message)
         {
             Message = message;
             return this;
         }
 
         /// <summary>
-        /// Build an <see cref="InteractiveMessage"/>
+        ///     Build an <see cref="InteractiveMessage" />
         /// </summary>
-        /// <returns><see cref="InteractiveMessage"/></returns>
+        /// <returns>
+        ///     <see cref="InteractiveMessage" />
+        /// </returns>
         public InteractiveMessage Build()
         {
             if (Users != null)
             {
-                if (MessageCriteria.ContainsCriteriaType(typeof(EnsureSourceUserCriterion))) throw new InvalidOperationException($"Cannot add a {nameof(EnsureFromUsersCriterion)} because {nameof(EnsureSourceUserCriterion)} has been already selected");
-                MessageCriteria.AddCriterion(new EnsureFromUsersCriterion(Users));
+                if (!MessageCriteria.ContainsCriteriaType(typeof(EnsureSourceUserCriterion)))
+                    MessageCriteria.AddCriterion(new EnsureFromUsersCriterion(Users));
             }
 
             if (Channels != null)
             {
-                if (MessageCriteria.ContainsCriteriaType(typeof(EnsureSourceChannelCriterion))) throw new InvalidOperationException($"Cannot add a {nameof(EnsureFromChannelsCriterion)} because {nameof(EnsureSourceChannelCriterion)} has been already selected");
-                MessageCriteria.AddCriterion(new EnsureFromChannelsCriterion(Channels));
+                if (!MessageCriteria.ContainsCriteriaType(typeof(EnsureSourceChannelCriterion)))
+                    MessageCriteria.AddCriterion(new EnsureFromChannelsCriterion(Channels));
             }
-            
 
-            return new InteractiveMessage(Message, Timeout, ResponseType, Repeat,
-                MessageCriteria, CancelationMessage, TimeoutMessage, CancelationWord, Channels?.FirstOrDefault(), Options);
+            return new InteractiveMessage(Message, Timeout, ResponseType, Repeat, MessageCriteria, CancelationMessage,
+                TimeoutMessage, CancelationWord, Channels?.FirstOrDefault(), Options);
         }
     }
 }

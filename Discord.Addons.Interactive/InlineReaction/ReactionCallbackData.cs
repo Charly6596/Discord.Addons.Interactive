@@ -1,11 +1,11 @@
 ﻿// ReSharper disable StyleCop.SA1600
 // ReSharper disable StyleCop.SA1516
+
 namespace Discord.Addons.Interactive
 {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-
     using Commands;
     using WebSocket;
 
@@ -13,7 +13,9 @@ namespace Discord.Addons.Interactive
     {
         private readonly ICollection<ReactionCallbackItem> items;
 
-        public ReactionCallbackData(string text, Embed embed = null, bool expiresAfterUse = true, bool singleUsePerUser = true, TimeSpan? timeout = null, Func<SocketCommandContext, Task> timeoutCallback = null)
+        public ReactionCallbackData(string text, Embed embed = null, bool expiresAfterUse = true,
+            bool singleUsePerUser = true, TimeSpan? timeout = null,
+            Func<SocketCommandContext, Task> timeoutCallback = null)
         {
             if (text == null && embed == null)
             {
@@ -39,7 +41,8 @@ namespace Discord.Addons.Interactive
         public TimeSpan? Timeout { get; }
         public Func<SocketCommandContext, Task> TimeoutCallback { get; }
 
-        public ReactionCallbackData WithCallback(IEmote reaction, Func<SocketCommandContext, SocketReaction, Task> callback)
+        public ReactionCallbackData WithCallback(IEmote reaction,
+            Func<SocketCommandContext, SocketReaction, Task> callback)
         {
             var item = new ReactionCallbackItem(reaction, callback);
             items.Add(item);

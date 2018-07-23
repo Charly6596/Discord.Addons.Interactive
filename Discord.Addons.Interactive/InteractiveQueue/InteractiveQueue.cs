@@ -1,14 +1,17 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Transactions;
 using Discord.Addons.Interactive.InteractiveBuilder;
 using Discord.WebSocket;
+using JetBrains.Annotations;
 
 namespace Discord.Addons.Interactive
 {
     public class InteractiveQueue
     {
-        private Queue<InteractiveMessage> _queue = new Queue<InteractiveMessage>();
+        private ConcurrentQueue<InteractiveMessage> _queue = new ConcurrentQueue<InteractiveMessage>();
 
         public InteractiveMessage defaultQueueOptions { get; set; }
 
@@ -24,32 +27,33 @@ namespace Discord.Addons.Interactive
             defaultQueueOptions = interactiveMessage;
         }
 
-        public InteractiveQueue Add(InteractiveMessage interactiveMessage)
+        public InteractiveQueue Add([NotNull] params InteractiveMessage[] interactiveMessages)
         {
-            var interactiveMessageType = typeof(InteractiveMessage);
-            var defaultOptionsType = typeof(InteractiveMessageDefaultOptions);
-            foreach (var property in interactiveMessageType.GetProperties())
+            foreach (var interactiveMessage in interactiveMessages)
             {
-                var propertyName = property.Name;
-                if (property.GetValue(interactiveMessage, null) == defaultOptionsType.GetProperty(propertyName)?.GetValue(null, null))
+                var interactiveMessageType = typeof(InteractiveMessage);
+                var defaultOptionsType = typeof(InteractiveMessageDefaultOptions);
+                foreach (var property in interactiveMessageType.GetProperties())
                 {
-                    property.SetValue(interactiveMessage, interactiveMessageType.GetProperty(propertyName)?.GetValue(defaultQueueOptions));
+                    var propertyName = property.Name;
+                    if (property.GetValue(interactiveMessage, null) ==
+                        defaultOptionsType.GetProperty(propertyName)?.GetValue(null, null))
+                    {
+                        property.SetValue(interactiveMessage,
+                            interactiveMessageType.GetProperty(propertyName)?.GetValue(defaultQueueOptions));
+                    }
                 }
+
+                _queue.Enqueue(interactiveMessage);
             }
-            _queue.Enqueue(interactiveMessage);
+
             return this;
-        }   
+        }
 
         public Task<SocketMessage> Next(InteractiveBase interactiveBase)
         {
-            var interactiveMessage = _queue.Dequeue();
-            return interactiveBase.StartInteractiveMessage(interactiveMessage);
+            var result = _queue.TryDequeue(out var interactiveMessage);
+            return result ? interactiveBase.StartInteractiveMessage(interactiveMessage) : null;
         }
-
-//        public async Task RunAll()
-//        {
-//            var block = new ActionBlock<QueryAvailabilityMultidayRequest>
-//
-//        }
     }
 }

@@ -1,7 +1,6 @@
 ﻿namespace Discord.Addons.Interactive
 {
     using System.Threading.Tasks;
-
     using Commands;
     using WebSocket;
 
