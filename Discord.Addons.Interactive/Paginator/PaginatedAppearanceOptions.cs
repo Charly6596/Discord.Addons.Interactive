@@ -1,5 +1,6 @@
 ﻿// ReSharper disable StyleCop.SA1600
 // ReSharper disable StyleCop.SA1401
+
 namespace Discord.Addons.Interactive
 {
     using System;

@@ -13,9 +13,9 @@ namespace Discord.Addons.Interactive
             CriteriaResult = criteriaResult;
             Message = response;
         }
+
         public InteractiveResponse()
         {
-
         }
     }
 }

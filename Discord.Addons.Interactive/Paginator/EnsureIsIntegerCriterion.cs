@@ -1,8 +1,8 @@
 ﻿// ReSharper disable StyleCop.SA1600
+
 namespace Discord.Addons.Interactive
 {
     using System.Threading.Tasks;
-
     using Commands;
     using WebSocket;
 

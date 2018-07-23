@@ -7,7 +7,6 @@ namespace Discord.Addons.Interactive
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
-
     using Commands;
 
     public class Criteria<T> : ICriterion<T>
@@ -36,6 +35,7 @@ namespace Discord.Addons.Interactive
         {
             return criteria.Any(c => c.GetType() == criteriaType);
         }
+
         /// <summary>
         /// The judge async.
         /// </summary>

@@ -13,6 +13,8 @@
         /// <param name="reason">
         /// The reason.
         /// </param>
-        public OkResult(string reason = null) : base(null, reason) { }
+        public OkResult(string reason = null) : base(null, reason)
+        {
+        }
     }
 }

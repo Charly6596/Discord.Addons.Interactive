@@ -1,6 +1,4 @@
-﻿
-
-namespace Discord.Addons.Interactive
+﻿namespace Discord.Addons.Interactive
 {
     using System;
     using System.Collections.Generic;
@@ -42,7 +40,7 @@ namespace Discord.Addons.Interactive
             callbacks = new Dictionary<ulong, IReactionCallback>();
             this.defaultTimeout = defaultTimeout ?? TimeSpan.FromSeconds(15);
         }
-        
+
         /// <summary>
         /// Gets the client
         /// </summary>
@@ -66,7 +64,8 @@ namespace Discord.Addons.Interactive
         /// <returns>
         /// The <see cref="Task"/>.
         /// </returns>
-        public Task<SocketMessage> NextMessageAsync(SocketCommandContext context, bool fromSourceUser = true, bool inSourceChannel = true, TimeSpan? timeout = null)
+        public Task<SocketMessage> NextMessageAsync(SocketCommandContext context, bool fromSourceUser = true,
+            bool inSourceChannel = true, TimeSpan? timeout = null)
         {
             var criterion = new Criteria<SocketMessage>();
             if (fromSourceUser)
@@ -100,7 +99,8 @@ namespace Discord.Addons.Interactive
         /// <returns>
         /// The <see cref="Task"/>.
         /// </returns>
-        public async Task<SocketMessage> NextMessageAsync(SocketCommandContext context, ICriterion<SocketMessage> criterion, TimeSpan? timeout = null)
+        public async Task<SocketMessage> NextMessageAsync(SocketCommandContext context,
+            ICriterion<SocketMessage> criterion, TimeSpan? timeout = null)
         {
             timeout = timeout ?? defaultTimeout;
 
@@ -109,7 +109,7 @@ namespace Discord.Addons.Interactive
             Task Func(SocketMessage m) => HandlerAsync(m, context, eventTrigger, criterion);
 
             context.Client.MessageReceived += Func;
-            
+
             var trigger = eventTrigger.Task;
             var delay = Task.Delay(timeout.Value);
             var task = await Task.WhenAny(trigger, delay).ConfigureAwait(false);
@@ -125,9 +125,9 @@ namespace Discord.Addons.Interactive
         }
 
 
-        public async Task<InteractiveResponse> NextMessageAsync(SocketCommandContext context, InteractiveMessage interactiveMessage)
+        public async Task<InteractiveResponse> NextMessageAsync(SocketCommandContext context,
+            InteractiveMessage interactiveMessage)
         {
-
             var eventTrigger = new TaskCompletionSource<InteractiveResponse>();
 
             Task Func(SocketMessage m) => HandlerAsync(m, context, eventTrigger, interactiveMessage);
@@ -151,6 +151,7 @@ namespace Discord.Addons.Interactive
 
             return new InteractiveResponse(CriteriaResult.Timeout, null);
         }
+
         /// <summary>
         /// Sends a message with reaction callbacks
         /// </summary>
@@ -166,7 +167,8 @@ namespace Discord.Addons.Interactive
         /// <returns>
         /// The <see cref="Task"/>.
         /// </returns>
-        public async Task<IUserMessage> SendMessageWithReactionCallbacksAsync(SocketCommandContext context, ReactionCallbackData reactionCallbackData, bool fromSourceUser = true)
+        public async Task<IUserMessage> SendMessageWithReactionCallbacksAsync(SocketCommandContext context,
+            ReactionCallbackData reactionCallbackData, bool fromSourceUser = true)
         {
             var criterion = new Criteria<SocketReaction>();
             if (fromSourceUser)
@@ -203,7 +205,8 @@ namespace Discord.Addons.Interactive
         /// <returns>
         /// The <see cref="Task"/>.
         /// </returns>
-        public async Task<IUserMessage> ReplyAndDeleteAsync(SocketCommandContext context, string content, bool isTTS = false, Embed embed = null, TimeSpan? timeout = null, RequestOptions options = null)
+        public async Task<IUserMessage> ReplyAndDeleteAsync(SocketCommandContext context, string content,
+            bool isTTS = false, Embed embed = null, TimeSpan? timeout = null, RequestOptions options = null)
         {
             timeout = timeout ?? defaultTimeout;
             var message = await context.Channel.SendMessageAsync(content, isTTS, embed, options).ConfigureAwait(false);
@@ -231,7 +234,8 @@ namespace Discord.Addons.Interactive
         /// <returns>
         /// The <see cref="Task"/>.
         /// </returns>
-        public async Task<IUserMessage> SendPaginatedMessageAsync(SocketCommandContext context, PaginatedMessage pager, ReactionList reactions, ICriterion<SocketReaction> criterion = null)
+        public async Task<IUserMessage> SendPaginatedMessageAsync(SocketCommandContext context, PaginatedMessage pager,
+            ReactionList reactions, ICriterion<SocketReaction> criterion = null)
         {
             var callback = new PaginatedMessageCallback(this, context, pager, criterion);
             await callback.DisplayAsync(reactions).ConfigureAwait(false);
@@ -270,7 +274,7 @@ namespace Discord.Addons.Interactive
         /// Clears all reaction callbacks
         /// </summary>
         public void ClearReactionCallbacks() => callbacks.Clear();
-        
+
         /// <summary>
         /// Unsubscribes from a reactionHandler event
         /// </summary>
@@ -297,7 +301,8 @@ namespace Discord.Addons.Interactive
         /// <returns>
         /// The <see cref="Task"/>.
         /// </returns>
-        private static async Task HandlerAsync(SocketMessage message, SocketCommandContext context, TaskCompletionSource<SocketMessage> eventTrigger, ICriterion<SocketMessage> criterion)
+        private static async Task HandlerAsync(SocketMessage message, SocketCommandContext context,
+            TaskCompletionSource<SocketMessage> eventTrigger, ICriterion<SocketMessage> criterion)
         {
             var result = await criterion.JudgeAsync(context, message).ConfigureAwait(false);
             if (result)
@@ -307,7 +312,8 @@ namespace Discord.Addons.Interactive
         }
 
 
-        private static async Task HandlerAsync(SocketMessage message, SocketCommandContext context, TaskCompletionSource<InteractiveResponse> eventTrigger, InteractiveMessage interactiveMessage)
+        private static async Task HandlerAsync(SocketMessage message, SocketCommandContext context,
+            TaskCompletionSource<InteractiveResponse> eventTrigger, InteractiveMessage interactiveMessage)
         {
             var result = await interactiveMessage.MessageCriteria.JudgeAsync(context, message).ConfigureAwait(false);
             if (result)
@@ -316,7 +322,8 @@ namespace Discord.Addons.Interactive
             }
         }
 
-        private static InteractiveResponse EvaluateResponse(SocketMessage message, InteractiveMessage interactiveMessage)
+        private static InteractiveResponse EvaluateResponse(SocketMessage message,
+            InteractiveMessage interactiveMessage)
         {
             var response = new InteractiveResponse(CriteriaResult.WrongResponse, message);
 
@@ -329,10 +336,11 @@ namespace Discord.Addons.Interactive
                     return response;
                 }
             }
+
             switch (interactiveMessage.ResponseType)
             {
                 case InteractiveTextResponseType.Channel:
-                   if(message.ContainsChannel())
+                    if (message.ContainsChannel())
                         response.CriteriaResult = CriteriaResult.Success;
                     break;
                 case InteractiveTextResponseType.User:
@@ -353,8 +361,10 @@ namespace Discord.Addons.Interactive
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+
             return response;
         }
+
         /// <summary>
         /// Handles a message reaction
         /// </summary>
@@ -370,7 +380,8 @@ namespace Discord.Addons.Interactive
         /// <returns>
         /// The <see cref="Task"/>.
         /// </returns>
-        private async Task HandleReactionAsync(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+        private async Task HandleReactionAsync(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel,
+            SocketReaction reaction)
         {
             if (reaction.UserId == Discord.CurrentUser.Id)
             {
