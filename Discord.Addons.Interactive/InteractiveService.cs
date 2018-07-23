@@ -135,8 +135,12 @@ namespace Discord.Addons.Interactive
             context.Client.MessageReceived += Func;
 
             var trigger = eventTrigger.Task;
+
             var delay = Task.Delay(interactiveMessage.TimeSpan);
-            var task = await Task.WhenAny(trigger, delay).ConfigureAwait(false);
+
+            var task = interactiveMessage.TimeSpan == TimeSpan.Zero
+                ? await Task.WhenAny(trigger).ConfigureAwait(false)
+                : await Task.WhenAny(trigger, delay).ConfigureAwait(false);
 
             context.Client.MessageReceived -= Func;
 

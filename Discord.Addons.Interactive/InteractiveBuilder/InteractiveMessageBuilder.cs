@@ -280,7 +280,7 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
             
 
             return new InteractiveMessage(Message, Timeout, ResponseType, Repeat,
-                MessageCriteria, CancelationMessage, TimeoutMessage, CancelationWord, Channels.FirstOrDefault(), Options);
+                MessageCriteria, CancelationMessage, TimeoutMessage, CancelationWord, Channels?.FirstOrDefault(), Options);
         }
     }
 }

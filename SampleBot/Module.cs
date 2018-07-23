@@ -185,7 +185,6 @@ namespace SampleBot
             var interactiveMessageBuilder =
                 new InteractiveMessageBuilder("Yo, write a channel, I'll check if it's trully a channel")
                     .WithResponseType(InteractiveTextResponseType.Channel)
-                    .WithTimeSpan(TimeSpan.FromSeconds(15))
                     .AddCriteria(CriteriaType.SourceChannel)
                     .AddCriteria(CriteriaType.SourceUser)
                     .EnableLoop()
@@ -207,7 +206,7 @@ namespace SampleBot
                     new InteractiveMessageBuilder("Psssh, tell me a secret, i promese i won't tell anyone")
                         .WithResponseType(InteractiveTextResponseType.Any)
                         .WithTimeSpan(TimeSpan.FromSeconds(115))
-                        .SetChannel(await Context.User.GetOrCreateDMChannelAsync())
+                        .ListenChannel(await Context.User.GetOrCreateDMChannelAsync())
                         .AddCriteria(CriteriaType.SourceUser);
 
             var interactiveMessage = interactiveMessageBuilder.Build();
@@ -235,7 +234,7 @@ namespace SampleBot
 
              var interactiveMessageBuilder =
                 new InteractiveMessageBuilder(message)
-                    .SetChannel(dmc2);
+                    .ListenChannel(dmc2);
 
             var  interactiveMessage = interactiveMessageBuilder.Build();
             iq.Add(interactiveMessage);
@@ -245,7 +244,7 @@ namespace SampleBot
                 var reply = await iq.Next(this);
                 interactiveMessageBuilder =
                     new InteractiveMessageBuilder(reply.Content)
-                        .SetChannel(dmc1);
+                        .ListenChannel(dmc1);
 
                 interactiveMessage = interactiveMessageBuilder.Build();
                 iq.Add(interactiveMessage);
@@ -253,7 +252,7 @@ namespace SampleBot
                 reply = await iq.Next(this);
                 interactiveMessageBuilder =
                     new InteractiveMessageBuilder(reply.Content)
-                        .SetChannel(dmc2);
+                        .ListenChannel(dmc2);
 
                 interactiveMessage = interactiveMessageBuilder.Build();
                 iq.Add(interactiveMessage);
