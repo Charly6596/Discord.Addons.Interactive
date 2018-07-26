@@ -55,5 +55,10 @@ namespace Discord.Addons.Interactive
             var result = _queue.TryDequeue(out var interactiveMessage);
             return result ? interactiveBase.StartInteractiveMessage(interactiveMessage) : null;
         }
+
+        public void DiscardNext()
+        {
+            var result = _queue.TryDequeue(out var interactiveMessage);
+        }
     }
 }
