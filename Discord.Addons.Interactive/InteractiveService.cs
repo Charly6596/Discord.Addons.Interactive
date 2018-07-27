@@ -1,4 +1,5 @@
-﻿namespace Discord.Addons.Interactive
+﻿
+namespace Discord.Addons.Interactive
 {
     using System;
     using System.Collections.Generic;
@@ -92,9 +93,6 @@
         /// </param>
         /// <param name="timeout">
         /// The timeout.
-        /// </param>
-        /// <param name="targetChannel">
-        /// Target channel.
         /// </param>
         /// <returns>
         /// The <see cref="Task"/>.
@@ -299,7 +297,7 @@
         /// <returns>
         /// The <see cref="Task"/>.
         /// </returns>
-        private static async Task HandlerAsync(SocketMessage message, SocketCommandContext context,
+        private async Task HandlerAsync(SocketMessage message, SocketCommandContext context,
             TaskCompletionSource<SocketMessage> eventTrigger, ICriterion<SocketMessage> criterion)
         {
             var result = await criterion.JudgeAsync(context, message).ConfigureAwait(false);
@@ -310,24 +308,24 @@
         }
 
 
-        private static async Task HandlerAsync(SocketMessage message, SocketCommandContext context,
+        private async Task HandlerAsync(SocketMessage message, SocketCommandContext context,
             TaskCompletionSource<InteractiveResponse> eventTrigger, InteractiveMessage interactiveMessage)
         {
             var result = await interactiveMessage.MessageCriteria.JudgeAsync(context, message).ConfigureAwait(false);
             if (result)
             {
-                eventTrigger.SetResult(EvaluateResponse(message, interactiveMessage));
+                eventTrigger.SetResult(await EvaluateResponse(message, interactiveMessage));
             }
         }
 
-        private static InteractiveResponse EvaluateResponse(SocketMessage message,
+        private async Task<InteractiveResponse> EvaluateResponse(SocketMessage message,
             InteractiveMessage interactiveMessage)
         {
             var response = new InteractiveResponse(CriteriaResult.WrongResponse, message);
 
-            if (!String.IsNullOrEmpty(interactiveMessage.CancelationWord))
+            if (interactiveMessage.CancelationWords != null)
             {
-                if (message.ContainsWords(1, interactiveMessage.CancelationWord))
+                if (message.ContainsWords(1, interactiveMessage.CaseSensitive, interactiveMessage.CancelationWords))
                 {
                     response.CriteriaResult = CriteriaResult.Canceled;
                     response.Message = null;
@@ -335,6 +333,17 @@
                 }
             }
 
+            response = EvaluateResponseType(message, interactiveMessage, response);
+
+            if (response.CriteriaResult != CriteriaResult.Success &&
+                interactiveMessage.ResponseType != InteractiveTextResponseType.Any)
+                await interactiveMessage.SendWrongResponseMessages();
+            return response;
+        }
+
+        private InteractiveResponse EvaluateResponseType(SocketMessage message, InteractiveMessage interactiveMessage,
+            InteractiveResponse response)
+        {
             switch (interactiveMessage.ResponseType)
             {
                 case InteractiveTextResponseType.Channel:
@@ -350,7 +359,7 @@
                         response.CriteriaResult = CriteriaResult.Success;
                     break;
                 case InteractiveTextResponseType.Options:
-                    if (message.ContainsWords(0, interactiveMessage.Options))
+                    if (message.ContainsWords(1, interactiveMessage.CaseSensitive, interactiveMessage.Options))
                         response.CriteriaResult = CriteriaResult.Success;
                     break;
                 case InteractiveTextResponseType.Any:
@@ -414,6 +423,60 @@
                     }
 
                     break;
+            }
+        }
+        
+        public async Task<SocketMessage> StartInteractiveMessage(SocketCommandContext context, InteractiveMessage interactiveMessage)
+        {
+            //TODO: refactor...
+            
+            interactiveMessage.Channel = interactiveMessage.Channel ?? context.Channel;
+
+            await interactiveMessage.SendFirstMessages();
+            
+            var response = await InteractiveResponseResult(context, interactiveMessage);
+
+            
+            if (response.CriteriaResult == CriteriaResult.Success) return response.Message;
+
+            await SendCriteriaErrorMessages(interactiveMessage, response);
+
+            return response.Message;
+        }
+
+        private async Task<InteractiveResponse> InteractiveResponseResult(SocketCommandContext context, InteractiveMessage interactiveMessage)
+        {
+            InteractiveResponse response;
+            if (interactiveMessage.Repeat == LoopEnabled.True)
+                do
+                {
+                    response = await NextMessageAsync(context, interactiveMessage);
+                } while (response.CriteriaResult == CriteriaResult.WrongResponse);
+            
+            else
+                response = await NextMessageAsync(context, interactiveMessage);
+
+
+            return response;
+        }
+
+        private async Task SendCriteriaErrorMessages(InteractiveMessage interactiveMessage, InteractiveResponse response)
+        {
+            switch (response.CriteriaResult)
+            {
+                case CriteriaResult.Timeout:
+                    await interactiveMessage.SendTimeoutMessages();
+                    break;
+                case CriteriaResult.Canceled:
+                    await interactiveMessage.SendCancellationMessages();
+                    break;
+                case CriteriaResult.Success:
+                    
+                    break;
+                case CriteriaResult.WrongResponse:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
     }

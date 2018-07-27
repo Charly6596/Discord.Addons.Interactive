@@ -28,10 +28,13 @@ namespace Discord.Addons.Interactive.Extensions
                     ? message.MentionedUsers.Count == numberOfUsers
                     : message.MentionedUsers.Count >= 1);
 
-        public static bool ContainsWords(this SocketMessage message, int numberOfCoincidences = 0,
-            params string[] words)
+        public static bool ContainsWords(this SocketMessage message, int numberOfCoincidences = 0, 
+            bool caseSensitive = false, params string[] words)
         {
-            var coincidences = words.Where(word => message.Content.Contains(word));
+            IEnumerable<string> coincidences;
+            coincidences = caseSensitive
+                ? words.Where(word => message.Content.Contains(word))
+                : words.Where(word => message.Content.ToLower().Contains(word.ToLower()));
             return numberOfCoincidences > 0 ? coincidences.Count() == numberOfCoincidences : coincidences.Any();
         }
     }

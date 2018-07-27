@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using System.Transactions;
 using Discord.Addons.Interactive.InteractiveBuilder;
 using Discord.WebSocket;
 using JetBrains.Annotations;
