@@ -57,54 +57,6 @@
 
 
         public async Task<SocketMessage> StartInteractiveMessage(InteractiveMessage interactiveMessage)
-        {
-            //TODO: refactor...
-            CriteriaResult result;
-            InteractiveResponse response;
-            interactiveMessage.Channel = interactiveMessage.Channel ?? Context.Channel;
-            if (interactiveMessage.Repeat == LoopEnabled.True)
-            {
-                do
-                {
-                    if (!String.IsNullOrEmpty(interactiveMessage.Message))
-                        await interactiveMessage.Channel.SendMessageAsync(interactiveMessage.Message);
-
-                    response = await Interactive.NextMessageAsync(Context, interactiveMessage);
-                    result = response.CriteriaResult;
-                } while (result == CriteriaResult.WrongResponse);
-            }
-            else
-            {
-                if (!String.IsNullOrEmpty(interactiveMessage.Message))
-                    await interactiveMessage.Channel.SendMessageAsync(interactiveMessage.Message);
-
-                response = await Interactive.NextMessageAsync(Context, interactiveMessage);
-            }
-
-            string message;
-            if (response.CriteriaResult != CriteriaResult.Success)
-            {
-                switch (response.CriteriaResult)
-                {
-                    case CriteriaResult.Timeout:
-                        message = String.IsNullOrEmpty(interactiveMessage.TimeoutMessage)
-                            ? null
-                            : interactiveMessage.TimeoutMessage;
-                        break;
-                    case CriteriaResult.Canceled:
-                        message = String.IsNullOrEmpty(interactiveMessage.CancelationMessage)
-                            ? null
-                            : interactiveMessage.CancelationMessage;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-
-                if (message != null)
-                    await Context.Channel.SendMessageAsync(message);
-            }
-
-            return response.Message;
-        }
+            => await Interactive.StartInteractiveMessage(Context, interactiveMessage);
     }
 }

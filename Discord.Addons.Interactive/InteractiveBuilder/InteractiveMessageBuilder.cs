@@ -14,7 +14,7 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
         private List<IMessageChannel> _channels;
         private List<IUser> _users;
 
-        public InteractiveTextResponseType ResponseType
+        public InteractiveTextResponseType ResponseType //TODO: Regex response type
         {
             get => _responseType;
             internal set
@@ -26,9 +26,10 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
             }
         }
 
-        public string Message { get; internal set; } = InteractiveMessageDefaultOptions.Message;
+        public string[] Messages { get; internal set; } = InteractiveMessageDefaultOptions.Messages;
         public TimeSpan Timeout { get; internal set; } = InteractiveMessageDefaultOptions.TimeSpan;
         public LoopEnabled Repeat { get; internal set; } = InteractiveMessageDefaultOptions.Repeat;
+        public bool CaseSensitive { get; internal set; } = InteractiveMessageDefaultOptions.CaseSensitive;
 
         public List<IMessageChannel> Channels
         {
@@ -60,64 +61,83 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
                     nameof(value));
         }
 
-        public string CancelationWord { get; internal set; } = InteractiveMessageDefaultOptions.CancelationWord;
-        public string CancelationMessage { get; internal set; } = InteractiveMessageDefaultOptions.CancelationMessage;
-        public string TimeoutMessage { get; internal set; } = InteractiveMessageDefaultOptions.TimeoutMessage;
-
-
+        public string[] CancelationWords { get; internal set; } = InteractiveMessageDefaultOptions.CancelationWords;
+        public string[] CancelationMessages { get; internal set; } = InteractiveMessageDefaultOptions.CancelationMessages;
+        public string[] TimeoutMessages { get; internal set; } = InteractiveMessageDefaultOptions.TimeoutMessage;
+        public string[] WrongResponseMessages { get; internal set; } = InteractiveMessageDefaultOptions.WrongResponseMessages;
+        
+        //TODO: Some kind of message pool object, to pick one randomly to send it
+        
         /// <summary>
-        /// This message will be sent if the <see cref="CancelationWord"/> is sent by any listened source.
-        /// If it's not setted, won't be sent.
+        /// This message(s) will be sent if the <see cref="CancelationWords"/> is sent by any listened source.
+        /// If it's not setted, won't be sent. 
         /// </summary>
         /// <param name="cancelationMessage"></param>
         /// <returns></returns>
-        public InteractiveMessageBuilder SetCancelationMessage(string cancelationMessage)
+        public InteractiveMessageBuilder SetCancelationMessage(params string[] cancelationMessage)
         {
-            CancelationMessage = cancelationMessage;
+            CancelationMessages = cancelationMessage;
             return this;
         }
 
         /// <summary>
-        /// This message will be sent if the <see cref="Timeout"/> is triggered.
+        /// This message(s) will be sent if one of the listened users reply with a wrong answer
+        /// <example>
+        ///<code>
+        ///interactiveBuilder.SetWrongResponseMessage("You have to reply with Yes or No", "Please, reply with Yes or No");
+        /// </code>
+        /// </example>
+        /// If it's not setted, won't be sent. 
+        /// </summary>
+        /// <param name="wrongResponse"></param>
+        /// <returns></returns>
+        public InteractiveMessageBuilder SetWrongResponseMessage(params string[] wrongResponse)
+        {
+            WrongResponseMessages = wrongResponse;
+            return this;
+        }
+        
+        /// <summary>
+        /// This message(s) will be sent if the <see cref="Timeout"/> is triggered.
         /// If it's not setted, won't be sent.
         /// </summary>
         /// <param name="timeoutMessage"></param>
         /// <returns></returns>
-        public InteractiveMessageBuilder SetTimeoutMessage(string timeoutMessage)
+        public InteractiveMessageBuilder SetTimeoutMessage(params string[] timeoutMessage)
         {
-            TimeoutMessage = timeoutMessage;
+            TimeoutMessages = timeoutMessage;
             return this;
         }
 
         /// <summary>
         ///     Let the user stop the <see cref="InteractiveMessage" /> with a certain word
+        ///     Can add as many as you want. By default, it's not case sensitive. <seealso cref="EnableCaseSensitive"/>
         /// </summary>
         /// <param name="word">
         ///     The word to stop the Interactive Message.
         /// </param>
         /// <returns>InteractiveMessageBuilder</returns>
-        public InteractiveMessageBuilder WithCancellationWord([NotNull] string word)
+        public InteractiveMessageBuilder WithCancellationWord([NotNull] params string[] word)
         {
-            CancelationWord = word;
+            CancelationWords = word;
             return this;
         }
 
         /// <summary>
         ///     Interactive message Builder
         /// </summary>
-        /// <param name="message">The message to send.</param>
-        public InteractiveMessageBuilder([NotNull] string message)
+        /// <param name="message">Message or mesasges to send before listening.</param>
+        public InteractiveMessageBuilder([NotNull] params string[] message)
         {
-            Message = message;
+            Messages = message;
         }
 
         public InteractiveMessageBuilder()
         {
-
         }
 
         /// <summary>
-        ///     Adds a <see cref="Criteria{T}" />
+        ///     Adds a pre-defined <see cref="Criteria{T}" />
         /// </summary>
         /// <param name="criteriaType">The <see cref="Criteria{T}" /> to add</param>
         /// <exception cref="InvalidOperationException"> </exception>
@@ -141,13 +161,17 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
                 case CriteriaType.Empty:
                     MessageCriteria.AddCriterion(new EmptyCriterion<SocketMessage>());
                     break;
-                default:
-                    break;
             }
 
             return this;
         }
 
+        /// <summary>
+        ///     Adds a <see cref="Criteria{T}" />
+        /// </summary>
+        /// <param name="criterion">The <see cref="Criteria{T}" /> to add</param>
+        /// <exception cref="InvalidOperationException"> </exception>
+        /// <returns>InteractiveMessageBuilder</returns>
         public InteractiveMessageBuilder AddCriteria(ICriterion<SocketMessage> criterion)
         {
             MessageCriteria.AddCriterion(criterion);
@@ -171,14 +195,27 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
         /// </summary>
         /// <param name="withLoop"></param>
         /// <returns></returns>
-        public InteractiveMessageBuilder EnableLoop([NotNull] LoopEnabled withLoop = LoopEnabled.True)
+        public InteractiveMessageBuilder EnableLoop(LoopEnabled withLoop = LoopEnabled.True)
         {
             Repeat = withLoop;
             return this;
         }
 
         /// <summary>
+        ///     Decide if <see cref="Options"/> and <see cref="CancelationWords"/> checks are case sensitive
+        /// <seealso cref="WithResponseType"/>
+        /// </summary>
+        /// <param name="caseSensitive"></param>
+        /// <returns></returns>
+        public InteractiveMessageBuilder EnableCaseSensitive(bool caseSensitive = true)
+        {
+            CaseSensitive = caseSensitive;
+            return this;
+        }
+      
+        /// <summary>
         ///     Specify a few options to be valid as response.
+        ///     By default, it's not case sensitive. <seealso cref="EnableCaseSensitive"/>
         /// </summary>
         /// <param name="options">The options</param>
         /// <returns>InteractiveMessageBuilder</returns>
@@ -193,30 +230,20 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
         /// </summary>
         /// <param name="user">User to listen</param>
         /// <returns></returns>
+        [Obsolete]
         public InteractiveMessageBuilder ListenUser([NotNull] IUser user)
         {
             if (Users == null) Users = new List<IUser>();
-            Users.Append(user);
+            Users.Add(user);
             return this;
         }
-
+        
         /// <summary>
         /// The bot will listen the provided users.
         /// </summary>
         /// <param name="users">Users to listen</param>
         /// <returns></returns>
-        public InteractiveMessageBuilder ListenUsers([NotNull] IEnumerable<IUser> users)
-        {
-            Users = Users == null ? new List<IUser>(users) : Users.Concat(users).ToList();
-            return this;
-        }
-
-        /// <summary>
-        /// The bot will listen the provided users.
-        /// </summary>
-        /// <param name="users">Users to listen</param>
-        /// <returns></returns>
-        public InteractiveMessageBuilder ListenUsers([NotNull] IUser[] users)
+        public InteractiveMessageBuilder ListenUsers([NotNull] params IUser[] users)
         {
             Users = Users == null ? new List<IUser>(users) : Users.Concat(users).ToList();
             return this;
@@ -227,6 +254,7 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
         /// </summary>
         /// <param name="channel">Channel to listen</param>
         /// <returns></returns>
+        [Obsolete]
         public InteractiveMessageBuilder ListenChannel([NotNull] IMessageChannel channel)
         {
             if (Channels == null) Channels = new List<IMessageChannel>();
@@ -239,18 +267,7 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
         /// </summary>
         /// <param name="channels">Channels to listen</param>
         /// <returns></returns>
-        public InteractiveMessageBuilder ListenChannel([NotNull] IEnumerable<IMessageChannel> channels)
-        {
-            Channels = Channels == null ? new List<IMessageChannel>(channels) : Channels.Concat(channels).ToList();
-            return this;
-        }
-
-        /// <summary>
-        /// The bot will listen the provided channels.
-        /// </summary>
-        /// <param name="channels">Channels to listen</param>
-        /// <returns></returns>
-        public InteractiveMessageBuilder ListenChannel([NotNull] params IMessageChannel[] channels)
+        public InteractiveMessageBuilder ListenChannels([NotNull] params IMessageChannel[] channels)
         {
             Channels = Channels == null ? new List<IMessageChannel>(channels) : Channels.Concat(channels).ToList();
             return this;
@@ -274,9 +291,10 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
         /// </summary>
         /// <param name="message">The message.</param>
         /// <returns>InteractiveMessageBuilder</returns>
-        public InteractiveMessageBuilder SetMessage([NotNull] string message)
+        [Obsolete]
+        public InteractiveMessageBuilder SetMessage([NotNull] params string[] message)
         {
-            Message = message;
+            Messages = message;
             return this;
         }
 
@@ -300,8 +318,8 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
                     MessageCriteria.AddCriterion(new EnsureFromChannelsCriterion(Channels));
             }
 
-            return new InteractiveMessage(Message, Timeout, ResponseType, Repeat, MessageCriteria, CancelationMessage,
-                TimeoutMessage, CancelationWord, Channels?.FirstOrDefault(), Options);
+            return new InteractiveMessage(Messages, Timeout, ResponseType, Repeat, MessageCriteria, CancelationMessages,
+                TimeoutMessages, CancelationWords, WrongResponseMessages, Channels?.FirstOrDefault(), Options);
         }
     }
 }

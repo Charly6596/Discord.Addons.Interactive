@@ -221,9 +221,11 @@ namespace SampleBot
         public async Task YesOrNo(string option1, string option2)
         {
             var interactiveMessageBuilder =
-                new InteractiveMessageBuilder(String.Format("Pick one: `{0}` or `{1}`", option1, option2))
+                new InteractiveMessageBuilder(String.Format("Pick one: `{0}` or `{1}`", option1, option2), "Message2", "Message3!!!")
                     .EnableLoop()
-                    .WithCancellationWord("Stop");
+                    .WithCancellationWord("Stop")
+                    .SetWrongResponseMessage("wrong3", "wrong2", "wrong")
+                    .ListenUsers(Context.User);
             interactiveMessageBuilder.SetOptions(option1, option2);
 
             var interactiveMessage = interactiveMessageBuilder.Build();
