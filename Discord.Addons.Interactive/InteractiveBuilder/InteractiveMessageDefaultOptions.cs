@@ -6,7 +6,7 @@ namespace Discord.Addons.Interactive.InteractiveBuilder
     internal static class InteractiveMessageDefaultOptions
     {
         internal static string Message { get; } = String.Empty;
-        internal static TimeSpan TimeSpan { get; } = TimeSpan.Zero;
+        internal static TimeSpan TimeSpan { get; } = TimeSpan.FromSeconds(15);
         internal static InteractiveTextResponseType ResponseType { get; } = InteractiveTextResponseType.Any;
         internal static LoopEnabled Repeat { get; } = LoopEnabled.Null;
         internal static Criteria<SocketMessage> MessageCriteria { get; } = new Criteria<SocketMessage>();

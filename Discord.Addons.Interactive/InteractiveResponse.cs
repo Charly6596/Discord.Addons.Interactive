@@ -8,7 +8,7 @@ namespace Discord.Addons.Interactive
 
         public CriteriaResult CriteriaResult { get; set; }
 
-        public InteractiveResponse(CriteriaResult criteriaResult, SocketMessage response)
+        internal InteractiveResponse(CriteriaResult criteriaResult, SocketMessage response)
         {
             CriteriaResult = criteriaResult;
             Message = response;

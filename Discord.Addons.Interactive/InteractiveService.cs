@@ -138,9 +138,7 @@
 
             var delay = Task.Delay(interactiveMessage.TimeSpan);
 
-            var task = interactiveMessage.TimeSpan == TimeSpan.Zero
-                ? await Task.WhenAny(trigger).ConfigureAwait(false)
-                : await Task.WhenAny(trigger, delay).ConfigureAwait(false);
+            var task = await Task.WhenAny(trigger, delay).ConfigureAwait(false);
 
             context.Client.MessageReceived -= Func;
 
